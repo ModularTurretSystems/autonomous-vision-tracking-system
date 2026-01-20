@@ -1,4 +1,4 @@
-from src.vision.stereo.calibration import StereoCapture
+from src.vision.stereo.capture import StereoCapture
 from src.vision.stereo.system import StereoSystem
 import cv2
 

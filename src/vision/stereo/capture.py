@@ -1,7 +1,9 @@
 from pathlib import Path
 import cv2
+from cv2.typing import MatLike
 from .types import StereoFrame
 from .system import StereoSystem
+from src.utils.image import combine_frames, resize_frame
 
 
 class StereoCapture:
@@ -30,7 +32,17 @@ class StereoCapture:
     def capture_frame(self) -> StereoFrame:
         return self.stereo_system.capture_frame()
     
+
+    def get_combined_frame(self, horizontal: bool = True) -> MatLike:
+        stereo_frame = self.capture_frame()
+        return combine_frames(frames=stereo_frame.to_list(), horizontal=horizontal)
+
+
+    def get_combined_and_resized_frame(self, frame_size: tuple[int, int], horizontal: bool = True) -> MatLike:
+        combined_frame = self.get_combined_frame(horizontal=horizontal)
+        return resize_frame(img=combined_frame, frame_size=frame_size)
     
+
     def save_frame(
             self, 
             frame: StereoFrame

@@ -5,3 +5,6 @@ __pycache__/
 
 # VS Code temporary files
 tempCodeRunnerFile.*
+
+# Data folder
+data/
