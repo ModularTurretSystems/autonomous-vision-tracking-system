@@ -38,12 +38,13 @@ src/
 │  └─ types.py        
 ├─ utils/
 │  ├─ __init__.py
-│  └─ cv2_logging.py
+│  ├─ cv2_logging.py
+│  └─ image.py
 ├─ vision/
 │  ├─ __init__.py
 |  └─ stereo/
 │     ├─ __init__.py
-│     ├─ calibration.py
+│     ├─ capture.py
 │     ├─ system.py
 |     └─ types.py
 ├─ .gitignore
