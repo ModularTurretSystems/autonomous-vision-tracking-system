@@ -28,6 +28,9 @@ pip install -r requirements.txt
 ```
 src/
 ├─ __init__.py
+├─ calibration/
+│  ├─ calibrate.py
+│  └─ collect_images.py        
 ├─ camera/
 │  ├─ __init__.py
 │  ├─ camera.py           
@@ -36,6 +39,13 @@ src/
 ├─ utils/
 │  ├─ __init__.py
 │  └─ cv2_logging.py
+├─ vision/
+│  ├─ __init__.py
+|  └─ stereo/
+│     ├─ __init__.py
+│     ├─ calibration.py
+│     ├─ system.py
+|     └─ types.py
 ├─ .gitignore
 ├─ requirements.txt
 └─ README.md
