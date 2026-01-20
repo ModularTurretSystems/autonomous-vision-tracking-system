@@ -1,8 +1,8 @@
-from src.calibration import calibrate
+from src.calibration import collect_images
 
 
 def main():
-    calibrate.callibration()
+    collect_images.collect_images()
     
 
 if __name__ == "__main__":

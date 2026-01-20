@@ -8,8 +8,8 @@ class StereoCapture:
             self, 
             left_id: int, 
             right_id: int, 
-            width: int = 640, 
-            height: int = 640
+            width: int, 
+            height: int
     ) -> None:
         #Инициализация камер
         self.cam_left = Camera(camera_id=left_id)
@@ -26,6 +26,9 @@ class StereoCapture:
         os.makedirs(self.save_path_left, exist_ok=True)
         os.makedirs(self.save_path_right, exist_ok=True)
 
+    def get_img_size(self) -> tuple[int, int]:
+        return self.cam_left[cv2.CAP_PROP_FRAME_WIDTH], self.cam_left[cv2.CAP_PROP_FRAME_HEIGHT]
+    
     def get_frames(self) -> StereoFrames:
         
         #Получение кадров с камер
