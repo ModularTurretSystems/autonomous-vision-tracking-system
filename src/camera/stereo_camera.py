@@ -27,14 +27,6 @@ class StereoCapture:
         os.makedirs(self.save_path_right, exist_ok=True)
 
     
-    def get_frames(self) -> StereoFrames:
-        
-        #Получение кадров с камер
-        _, frame_left = self.cam_left.capture_frame()
-        _, frame_right = self.cam_right.capture_frame()
-
-        return StereoFrames(left=frame_left, right=frame_right)
-    
     def save_pairs(
             self, 
             frame_left: MatLike, 
