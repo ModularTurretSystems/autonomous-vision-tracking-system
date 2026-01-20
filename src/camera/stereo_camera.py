@@ -26,8 +26,6 @@ class StereoCapture:
         os.makedirs(self.save_path_left, exist_ok=True)
         os.makedirs(self.save_path_right, exist_ok=True)
 
-    def get_img_size(self) -> tuple[int, int]:
-        return self.cam_left[cv2.CAP_PROP_FRAME_WIDTH], self.cam_left[cv2.CAP_PROP_FRAME_HEIGHT]
     
     def get_frames(self) -> StereoFrames:
         

@@ -96,6 +96,10 @@ class Camera:
 
     def get(self, propId: int) -> float:
         return self.cap.get(propId=propId)
+    
+
+    def get_cam_resolution(self) -> tuple[int, int]:
+        return int(self.cap.get(propId=cv2.CAP_PROP_FRAME_WIDTH)), int(self.cap.get(propId=cv2.CAP_PROP_FRAME_HEIGHT))
 
 
     def _filter_settable_properties(self, properties: dict[int, Property]) -> dict[int, Property]:
