@@ -3,7 +3,6 @@ import cv2
 from cv2.typing import MatLike
 from .types import StereoFrame
 from .system import StereoSystem
-from src.utils.image import combine_frames, resize_frame
 
 
 class StereoCapture:
@@ -34,13 +33,11 @@ class StereoCapture:
     
 
     def get_combined_frame(self, horizontal: bool = True) -> MatLike:
-        stereo_frame = self.capture_frame()
-        return combine_frames(frames=stereo_frame.to_list(), horizontal=horizontal)
+        return self.capture_frame().combine_frames(horizontal=horizontal)
 
 
     def get_combined_and_resized_frame(self, frame_size: tuple[int, int], horizontal: bool = True) -> MatLike:
-        combined_frame = self.get_combined_frame(horizontal=horizontal)
-        return resize_frame(img=combined_frame, frame_size=frame_size)
+        return self.capture_frame().combined_and_resize_frames(new_size=frame_size, horizontal=horizontal)
     
 
     def save_frame(
