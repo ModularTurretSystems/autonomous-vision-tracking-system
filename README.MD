@@ -29,8 +29,11 @@ pip install -r requirements.txt
 src/
 ├─ __init__.py
 ├─ calibration/
+│  ├─ __init__.py
 │  ├─ calibrate.py
-│  └─ collect_images.py        
+│  ├─ chessboard.py
+│  ├─ collect_images.py   
+│  └─ constants.py        
 ├─ camera/
 │  ├─ __init__.py
 │  ├─ camera.py           
