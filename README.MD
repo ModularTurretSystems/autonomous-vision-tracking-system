@@ -47,6 +47,7 @@ src/
 │  ├─ __init__.py
 |  └─ stereo/
 │     ├─ __init__.py
+│     ├── calibration_session.py
 │     ├─ capture.py
 │     ├─ system.py
 |     └─ types.py
