@@ -23,33 +23,41 @@ class StereoCapture:
 
         self.number_of_frames: int = 0
 
-
     def get_number_of_frames(self) -> int:
+        "Number of successfully saved pairs of frames"
         return self.number_of_frames
     
-
     def capture_frame(self) -> StereoFrame:
+        "Get a original stereo pair"
         return self.stereo_system.capture_frame()
     
 
     def get_combined_frame(self, horizontal: bool = True) -> MatLike:
+        "Return the stacked frame"
         return self.capture_frame().combine_frames(horizontal=horizontal)
 
 
     def get_combined_and_resized_frame(self, frame_size: tuple[int, int], horizontal: bool = True) -> MatLike:
+        "Return the stacked and resized frame"
         return self.capture_frame().combined_and_resize_frames(new_size=frame_size, horizontal=horizontal)
     
 
     def save_frame(
             self, 
             frame: StereoFrame
-    ) -> None:        
+    ) -> None:
+        """
+        Save stereo pair with current number.
+        Increments the counter only after successeful saving.
+        """        
         left_name: str = f"{self.save_path_left}/{self.number_of_frames}.jpg"
         right_name: str = f"{self.save_path_right}/{self.number_of_frames}.jpg"
 
         cv2.imwrite(filename=left_name, img=frame.frame_l)
         cv2.imwrite(filename=right_name, img=frame.frame_r)
 
+        
+            
         self.number_of_frames += 1
 
 

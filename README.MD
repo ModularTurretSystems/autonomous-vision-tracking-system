@@ -33,7 +33,8 @@ src/
 │  |  └─ chessboard.py        
 │  ├─ calibrate.py
 │  ├─ collect_images.py   
-│  └─ constants.py        
+│  ├─ constants.py  
+│  └─ types.py  
 ├─ camera/
 │  ├─ camera.py           
 │  ├─ constants.py
@@ -43,6 +44,7 @@ src/
 │  └─ image.py
 ├─ vision/
 |  └─ stereo/
+│     ├── calibration_session.py
 │     ├─ capture.py
 │     ├─ system.py
 |     └─ types.py
