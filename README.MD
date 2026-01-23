@@ -33,7 +33,8 @@ src/
 │  ├─ calibrate.py
 │  ├─ chessboard.py
 │  ├─ collect_images.py   
-│  └─ constants.py        
+│  ├─ constants.py  
+│  └─ types.py  
 ├─ camera/
 │  ├─ __init__.py
 │  ├─ camera.py           
