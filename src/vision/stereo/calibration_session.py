@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Tuple, List, Optional
 
 from .capture import StereoCapture
-from .types import StereoFrame
+from .types import RawData, StereoFrame
 from src.calibration.chessboard import find_chessboard_corners
 from src.utils.image import combine_and_resize_frames
 
@@ -51,7 +51,7 @@ class StereoCalibrationSession:
         objp *= self.SQUARE_SIZE_MM
         self.objp_template = objp
 
-    def run(self) -> dict:
+    def run(self) -> RawData:
         """Starts an interactive session. Returns dict with collected data."""
         winname = "Stereo Camera Calibration"
         collected = 0
@@ -124,12 +124,13 @@ class StereoCalibrationSession:
 
         cv2.destroyAllWindows()
 
-        return {
-            "collected_good": collected,
-            "enough": collected >= self.min_good_frames,
-            "obj_points": self.obj_points,
-            "img_points_left": self.img_points_left,
-            "img_points_right": self.img_points_right,
-            "saved_images_count": self.stereo_capture.number_of_frames,
-            "img_size": self.combined_resolution
-        }
+        return RawData(
+            collected=collected,
+            enough=collected >= self.min_good_frames,
+            obj_points = self.obj_points,
+            img_points_left = self.img_points_left,
+            img_points_right = self.img_points_right,
+            saved_images_count = self.stereo_capture.number_of_frames,
+            image_size = self.combined_resolution
+        )
+  

@@ -3,6 +3,8 @@ import numpy as np
 from pathlib import Path
 from typing import Dict, Any, Tuple
 
+from src.calibration.types import CalibratedData
+
 
 def load_points_data(npz_path: str | Path) -> Dict[str, Any]:
     npz_path = Path(npz_path)
@@ -25,7 +27,7 @@ def load_points_data(npz_path: str | Path) -> Dict[str, Any]:
 
 def stereo_calibrate(
         data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    ) -> CalibratedData:
     image_size = data["image_size"]
     objpoints = data["obj_points"]
     imgpoints_l = data["img_points_left"]
@@ -52,33 +54,33 @@ def stereo_calibrate(
         criteria=criteria
     )
 
-    return {
-        "rms": ret,
-        "camera_matrix_left": mtx_l,
-        "dist_left": dist_l,
-        "camera_matrix_right": mtx_r,
-        "dist_right": dist_r,
-        "R": R,
-        "T": T,
-        "E": E,
-        "F": F
-    }
+    return CalibratedData(
+        rms=ret,
+        matx_l=mtx_l,
+        dist_l=dist_l,
+        matx_r=mtx_r,
+        dist_r=dist_r,
+        R=R,
+        T=T,
+        E=E,
+        F=F
+    )
 
 def compute_rectification_maps(
-    calib: Dict,
+    calib: CalibratedData,
     image_size: Tuple[int, int]
 ) -> Tuple:
     R1, R2, P1, P2, Q, _, _ = cv2.stereoRectify(
-        calib["camera_matrix_left"], calib["dist_left"],
-        calib["camera_matrix_right"], calib["dist_right"],
-        image_size, calib["R"], calib["T"], alpha=0
+        calib.matx_l, calib.dist_l,
+        calib.matx_r, calib.dist_r,
+        image_size, calib.R, calib.T, alpha=0
     )
 
     map_l_x, map_l_y = cv2.initUndistortRectifyMap(
-        calib["camera_matrix_left"], calib["dist_left"], R1, P1, image_size, cv2.CV_32FC1
+        calib.matx_l, calib.dist_l, R1, P1, image_size, cv2.CV_32FC1
     )
     map_r_x, map_r_y = cv2.initUndistortRectifyMap(
-        calib["camera_matrix_right"], calib["dist_right"], R2, P2, image_size, cv2.CV_32FC1
+        calib.matx_r, calib.dist_r, R2, P2, image_size, cv2.CV_32FC1
     )
 
     return (map_l_x, map_l_y), (map_r_x, map_r_y), Q
@@ -143,7 +145,7 @@ def out():
 
         calib = stereo_calibrate(points_data)
 
-        print(f"RMS: {calib['rms']:.4f}")
+        print(f"RMS: {calib.rms:.4f}")
 
         maps_l, maps_r, Q = compute_rectification_maps(calib, image_size=(1280, 720))
 
@@ -156,11 +158,6 @@ def out():
             print("\nПоказываем карту глубины...")
             show_disparity_map(test_l, test_r, maps_l, maps_r, Q)
             
-            # Сохраняем результат калибровки
-        output_dir = Path("data/calibration_results")
-        np.savez(output_dir / "final_stereo_params.npz", **calib)
-        print("Параметры калибровки сохранены в final_stereo_params.npz")
-
     except Exception as e:
         print(f"Ошибка: {e}")
         import traceback

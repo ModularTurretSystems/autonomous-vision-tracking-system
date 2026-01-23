@@ -33,12 +33,12 @@ def collect_images() -> None:
 
     print("\n" + "="*40)
     print("Сессия завершена")
-    print(f"Собрано хороших кадров: {result.get('collected_good', 0)}")
-    print(f"Сохранено файлов: {result.get('saved_images_count', 0)}")
-    print(f"Готово к калибровке: {result.get('enough', False)}")
+    print(f"Собрано хороших кадров: {result.collected}")
+    print(f"Сохранено файлов: {result.saved_images_count}")
+    print(f"Готово к калибровке: {result.enough}")
     print("="*40)
 
-    if result.get('enough', False):
+    if result.enough:
         output_dir = Path("data/calibration_results")
         output_dir.mkdir(exist_ok=True, parents=True)
 
@@ -46,10 +46,10 @@ def collect_images() -> None:
 
         np.savez(
             output_file,
-            obj_points=result["obj_points"],
-            img_points_left=result["img_points_left"],
-            img_points_right=result["img_points_right"],
-            collected_good=result.get("collected_good", 0),
+            obj_points=result.obj_points,
+            img_points_left=result.img_points_left,
+            img_points_right=result.img_points_right,
+            collected_good=result.collected,
             pattern_size=(9, 6),
             square_size_mm=30.0,
             

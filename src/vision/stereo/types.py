@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from cv2.typing import MatLike, Size
 from src.utils.image import combine_and_resize_frames, combine_frames, resize_frame
 import cv2
-
+from typing import List, Tuple
+import numpy as np
 
 @dataclass
 class StereoFrame:
@@ -34,3 +35,14 @@ class StereoFrame:
 
     def combined_and_resize_frames(self, new_size: tuple[int, int], horizontal: bool = True) -> MatLike:
         return combine_and_resize_frames(frame_size=new_size, frames=self.to_list(), horizontal=horizontal)
+
+@dataclass
+class RawData:
+    collected: int
+    enough: bool
+    obj_points: List[np.ndarray]
+    img_points_left: List[np.ndarray]
+    img_points_right: List[np.ndarray]
+    saved_images_count: int
+    image_size: Tuple[int, int]
+
