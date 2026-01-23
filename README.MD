@@ -44,7 +44,7 @@ src/
 │  └─ image.py
 ├─ vision/
 |  └─ stereo/
-│     ├── calibration_session.py
+│     ├─ calibration_session.py
 │     ├─ capture.py
 │     ├─ system.py
 |     └─ types.py
