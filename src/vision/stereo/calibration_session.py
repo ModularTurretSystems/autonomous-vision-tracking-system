@@ -65,8 +65,8 @@ class StereoCalibrationSession:
         self.img_points_left: List[MatLike] = []
         self.img_points_right: List[MatLike] = []
 
-        self.objp_template: NDArray[float32] | None = None
-        self._prepare_object_points()  # ← правильный вызов приватного метода
+        self.objp_template: NDArray[float32]
+        self._prepare_object_points()
 
 
     def _prepare_object_points(self) -> None:

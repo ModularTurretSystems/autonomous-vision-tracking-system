@@ -1,6 +1,8 @@
 from cv2.typing import MatLike
 from dataclasses import dataclass
 
+from src.utils.types import AOVParameters
+
 
 @dataclass
 class CalibratedData:
@@ -13,5 +15,5 @@ class CalibratedData:
     T: MatLike
     E: MatLike
     F: MatLike
-
+    AOV: AOVParameters
 

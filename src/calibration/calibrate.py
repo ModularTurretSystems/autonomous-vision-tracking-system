@@ -5,6 +5,7 @@ from typing import Dict, Any, Tuple
 from cv2.typing import MatLike
 
 from src.calibration.types import CalibratedData
+from src.utils.camera_utils import estimate_AOV
 
 
 
@@ -100,16 +101,19 @@ def stereo_calibrate(
         criteria=criteria
     )
 
+    AOV_params = estimate_AOV(matx=mtx_l, img_size=IMAGE_SIZE)
+
     return CalibratedData(
         rms=ret,
-        matx_l=mtx_l,
+        matx_l=mtx_l,   
         dist_l=dist_l,
         matx_r=mtx_r,
         dist_r=dist_r,
         R=R,
         T=T,
         E=E,
-        F=F
+        F=F,
+        AOV = AOV_params
     )
 
 
@@ -191,8 +195,7 @@ def show_disparity_map(
 
 
 def out():
-    # Укажи свой файл (из collect_images.py)
-    npz_file = NPZ_FILE_PATH  # ← измени на актуальный
+    npz_file = NPZ_FILE_PATH
 
     test_left_path = TEST_LEFT_PATH
     test_right_path = TEST_RIGHT_PATH

@@ -40,8 +40,10 @@ src/
 │  ├─ constants.py
 │  └─ types.py        
 ├─ utils/
+│  ├─ camera_utils.py
 │  ├─ cv2_logging.py
-│  └─ image.py
+│  ├─ image.py
+│  └─ types.py
 ├─ vision/
 |  └─ stereo/
 │     ├─ calibration_session.py
