@@ -48,7 +48,27 @@ src/
 │     ├─ capture.py
 │     ├─ system.py
 |     └─ types.py
+├─ examples/
+│  ├─ capture.py
+│  ├─ charucoCreate.py
+│  ├─ charucoDetection.py
+│  ├─ findChessboardCorners.py  
+|  └─ testingOverload.py
 ├─ .gitignore
 ├─ requirements.txt
 └─ README.md
 ```
+
+## Running examples
+
+All example scripts are located in the `examples/` directory and should be executed as Python modules.
+
+From the project root, activate your virtual environment and run:
+
+```bash
+python -m examples.findChessboardCorners
+```
+
+⚠️ **Important:**
+Do not run example files directly (e.g. `python examples/findChessboardCorners.py`), because the project uses a package-based structure.
+Running them as modules ensures that all internal imports work correctly.
