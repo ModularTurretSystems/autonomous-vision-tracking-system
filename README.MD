@@ -30,7 +30,8 @@ src/
 ├─ calibration/
 │  ├─ patterns/
 │  │  ├─ charuco.py
-│  |  └─ chessboard.py        
+│  │  ├─ chessboard.py
+│  |  └─ types.py
 │  ├─ calibrate.py
 │  ├─ collect_images.py   
 │  ├─ constants.py  
@@ -45,13 +46,19 @@ src/
 │  ├─ image.py
 │  └─ types.py
 ├─ vision/
+|  ├─ mono/
+│  |  └─ capture.py
 |  └─ stereo/
 │     ├─ calibration_session.py
 │     ├─ capture.py
 │     ├─ system.py
 |     └─ types.py
 ├─ examples/
-│  ├─ stereoCapture.py
+│  ├─ mono/
+│  |  ├─ capture.py
+|  |  └─ captureAndDetection.py
+│  ├─ stereo/
+|  |  └─ capture.py
 │  ├─ charucoCreate.py
 │  ├─ charucoDetection.py
 │  ├─ findChessboardCorners.py  
