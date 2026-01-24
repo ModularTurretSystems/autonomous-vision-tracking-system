@@ -51,7 +51,7 @@ src/
 │     ├─ system.py
 |     └─ types.py
 ├─ examples/
-│  ├─ capture.py
+│  ├─ stereoCapture.py
 │  ├─ charucoCreate.py
 │  ├─ charucoDetection.py
 │  ├─ findChessboardCorners.py  
