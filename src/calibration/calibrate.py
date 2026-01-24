@@ -5,7 +5,7 @@ from typing import Dict, Any, Tuple
 from cv2.typing import MatLike
 
 from src.calibration.types import CalibratedData
-from src.utils.camera_utils import estemate_AOV
+from src.utils.camera_utils import estimate_AOV
 
 
 
@@ -101,7 +101,7 @@ def stereo_calibrate(
         criteria=criteria
     )
 
-    AOV_params = estemate_AOV(matx=mtx_l, img_size=IMAGE_SIZE)
+    AOV_params = estimate_AOV(matx=mtx_l, img_size=IMAGE_SIZE)
 
     return CalibratedData(
         rms=ret,

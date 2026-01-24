@@ -5,7 +5,7 @@ import numpy as np
 from src.utils.types import AOVParameters
 
 
-def estemate_AOV(
+def estimate_AOV(
         matx: MatLike,
         img_size: Tuple[int, int]
 ) -> AOVParameters:
