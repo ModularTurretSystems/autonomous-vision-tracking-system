@@ -1,7 +1,6 @@
 import cv2
-
-from cv2.aruco import CharucoBoard
 from cv2 import aruco
+from cv2.aruco import CharucoBoard
 
 
 board = CharucoBoard(size=(5, 7), squareLength=0.03, markerLength=0.015, dictionary=aruco.getPredefinedDictionary(aruco.DICT_4X4_50))

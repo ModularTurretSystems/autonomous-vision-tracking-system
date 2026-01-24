@@ -1,5 +1,5 @@
-from enum import IntEnum
 import cv2
+from enum import IntEnum
 
 class CameraProperty(IntEnum):
     POS_MSEC = cv2.CAP_PROP_POS_MSEC
@@ -125,3 +125,4 @@ class ApiPreference(IntEnum):
     XINE = cv2.CAP_XINE
     UEYE = cv2.CAP_UEYE
     OBSENSOR = cv2.CAP_OBSENSOR
+    

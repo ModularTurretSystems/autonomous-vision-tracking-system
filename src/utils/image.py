@@ -1,6 +1,7 @@
-import numpy as np
-from typing import Sequence
 import cv2
+import numpy as np
+
+from typing import Sequence
 from cv2.typing import MatLike, Size
 
 

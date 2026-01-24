@@ -30,10 +30,10 @@ class StereoSystem:
         
 
     def capture_frame(self) -> StereoFrame:
-        _, frame_l = self.left_cam.capture_frame()
-        _, frame_r = self.right_cam.capture_frame()
+        res_l = self.left_cam.capture_frame()
+        res_r = self.right_cam.capture_frame()
         
-        return StereoFrame(frame_l=frame_l, frame_r=frame_r)
+        return StereoFrame(camera_frame_l=res_l, camera_frame_r=res_r)
     
 
     def release(self) -> None:

@@ -1,8 +1,12 @@
-from src.camera.camera import Camera
-from typing import overload
-from pathlib import Path
-from cv2.typing import MatLike
 import cv2
+from pathlib import Path
+
+from src.camera.camera import Camera
+
+from src.camera.types import CameraFrame
+
+from cv2.typing import MatLike
+from typing import overload
 
 
 class MonoCapture:
@@ -38,9 +42,8 @@ class MonoCapture:
         self.save_dir = p
 
 
-    def capture_frame(self) -> MatLike:
-        _, frame = self.camera.capture_frame()
-        return frame
+    def capture_frame(self) -> CameraFrame:
+        return self.camera.capture_frame()
     
 
     def save_frame(self, frame: MatLike, base_name: str, ext: str = "png") -> bool:

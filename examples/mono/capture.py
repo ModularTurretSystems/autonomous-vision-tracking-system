@@ -27,7 +27,7 @@ CAM_ID = 0
 
 # Directory where captured frames will be saved.
 # Can be relative or absolute path.
-SAVE_DIR = "frames"
+SAVE_DIR = "data/frames"
 
 # Name of the OpenCV window for displaying live frames.
 WIN_NAME = "mono"
@@ -62,7 +62,7 @@ capture = MonoCapture(camera=cam, save_dir=SAVE_DIR)
 # capture = MonoCapture(camera=0) # Another method to init MonoCapture
 
 while(1):
-    frame = capture.capture_frame()
+    frame = capture.capture_frame().frame
     
     cv2.imshow(winname=WIN_NAME, mat=frame)
 

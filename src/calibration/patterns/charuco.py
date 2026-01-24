@@ -7,6 +7,7 @@ from cv2.aruco import(
     drawDetectedCornersCharuco,
     drawDetectedMarkers
 )
+
 from cv2.typing import MatLike, Scalar
 from .types import CharucoDetectionResult, CharucoData, MarkerData
 from typing import Sequence

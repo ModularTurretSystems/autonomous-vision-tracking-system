@@ -5,7 +5,7 @@ from src.vision.mono.capture import MonoCapture
 
 # ========== CONSTANTS ==========
 CAM_ID = 0
-SAVE_DIR = "frames"
+SAVE_DIR = "data/frames"
 
 WIN_NAME = "mono"
 
@@ -28,7 +28,11 @@ capture = MonoCapture(camera=cam, save_dir=SAVE_DIR)
 # capture = MonoCapture(camera=0) # Another method to init MonoCapture
 
 while(1):
-    frame = capture.capture_frame()
+    res = capture.capture_frame()
+
+    res.flip(flip_code=1)
+
+    frame = res.frame
     
     cv2.imshow(winname=WIN_NAME, mat=frame)
 

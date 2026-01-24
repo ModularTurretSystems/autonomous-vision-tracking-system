@@ -1,8 +1,8 @@
-from cv2.typing import MatLike
-from typing import Tuple
 import numpy as np
 
-from src.utils.types import AOVParameters
+from cv2.typing import MatLike
+from typing import Tuple
+from .types import AOVParameters
 
 
 def estimate_AOV(

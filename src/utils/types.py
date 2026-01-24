@@ -5,3 +5,4 @@ class AOVParameters:
     horizontal: float
     vertical: float
     diagonal: float
+    

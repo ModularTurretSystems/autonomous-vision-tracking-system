@@ -1,7 +1,9 @@
 import cv2
+
 from cv2.typing import MatLike, Size, TermCriteria
-from .types import ChessBoardDetectionResult
 from ..constants import ChessboardFlags
+
+from .types import ChessBoardDetectionResult
 
 
 class ChessboardPattern():

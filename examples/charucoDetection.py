@@ -1,9 +1,10 @@
 import cv2
 from cv2 import aruco
 from cv2.aruco import CharucoBoard, getPredefinedDictionary
-from src.calibration.patterns.charuco import CharucoPattern
 
 from src.camera.camera import Camera
+from src.calibration.patterns.charuco import CharucoPattern
+
 
 SIZE = (5, 7)
 SQUARE_LENGTH = 0.03
@@ -32,7 +33,8 @@ cam = Camera(camera_id=0, apiPreference=cv2.CAP_MSMF, params=PARAMS)
 
 
 while(1):
-    ret, frame = cam.capture_frame()
+    camera_frame = cam.capture_frame()
+    frame = camera_frame.frame
 
     res = pattern.detect_charuco_board(img=frame)
     

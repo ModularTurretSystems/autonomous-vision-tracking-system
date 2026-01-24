@@ -1,9 +1,12 @@
-from src.calibration.patterns.chessboard import ChessboardPattern
-from src.utils.image import combine_and_resize_frames
-from src.camera.camera import Camera
 import cv2 
-
 import os
+
+from src.utils.image import combine_and_resize_frames
+
+from src.camera.camera import Camera
+from src.calibration.patterns.chessboard import ChessboardPattern
+
+
 os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
 
 params = (
@@ -24,7 +27,6 @@ CRITERIA = (
 
 cam = Camera(camera_id=0, apiPreference=cv2.CAP_MSMF, params=params)
 
-CAM_RESOLUTION = cam.get_cam_resolution()
 SCREEN_RESOLUTION = (1280, 720)
 
 ROWS, COLS = 2, 2
@@ -36,8 +38,10 @@ FLAGS = cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE + cv2.CALIB_
 
 pattern = ChessboardPattern(pattern_size=PATTERN_SIZE, flags=FLAGS, refine=True, win_size=WIN_SIZE, zero_zone=ZERO_ZONE, criteria=CRITERIA)
 
+
 while(1):
-    _, frame = cam.capture_frame()
+    camera_frame = cam.capture_frame()
+    frame = camera_frame.frame
 
     res = pattern.detect_corners(img=frame)
     

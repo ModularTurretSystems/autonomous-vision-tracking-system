@@ -38,7 +38,6 @@ SQUARE_SIZE_MM = 30.0
 # ==================================================
 
 
-
 class StereoCalibrationSession:
     """
     Manages an interactive session for collecting calibration frames for stereo.
@@ -90,13 +89,13 @@ class StereoCalibrationSession:
         while True:
             stereo_frame = self.stereo_capture.capture_frame()
 
-            res_l = self.pattern.detect_corners(img=stereo_frame.frame_l)
-            res_r = self.pattern.detect_corners(img=stereo_frame.frame_r)
+            res_l = self.pattern.detect_corners(img=stereo_frame.camera_frame_l.frame)
+            res_r = self.pattern.detect_corners(img=stereo_frame.camera_frame_r.frame)
 
             display_frame = stereo_frame.copy()
 
-            self.pattern.draw_corners(img=display_frame.frame_l, corners=res_l.corners, patternWasFound=res_l.found)
-            self.pattern.draw_corners(img=display_frame.frame_r, corners=res_r.corners, patternWasFound=res_r.found)
+            self.pattern.draw_corners(img=display_frame.camera_frame_l.frame, corners=res_l.corners, patternWasFound=res_l.found)
+            self.pattern.draw_corners(img=display_frame.camera_frame_r.frame, corners=res_r.corners, patternWasFound=res_r.found)
 
             combined = combine_and_resize_frames(
                 frame_size=self.combined_resolution,

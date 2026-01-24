@@ -1,16 +1,18 @@
 import cv2
-from .types import Property
+
 from src.utils.cv2_logging import suppress_cv2_logs
+
 from .constants import(
     CameraProperty,
     ApiPreference
 )
 
-from cv2.typing import(
-    MatLike
-)
 from typing import(
     Sequence
+)
+from .types import (
+    Property, 
+    CameraFrame
 )
 
 
@@ -81,12 +83,12 @@ class Camera:
         for key, value in working_apis.items(): print(key, value)
 
 
-    def capture_frame(self) -> tuple[bool, MatLike]:
+    def capture_frame(self) -> CameraFrame:
         ret, frame = self.cap.read()
         if not ret:
             raise RuntimeError(f"Failed to capture frame from camera {self.camera_id}")
         
-        return ret, frame
+        return CameraFrame(success=ret, frame=frame)
 
 
     def set(self, propId: int, value: float) -> bool:        

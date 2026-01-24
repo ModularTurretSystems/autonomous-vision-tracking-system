@@ -1,27 +1,30 @@
 from dataclasses import dataclass
-from cv2.typing import MatLike, Size
 from src.utils.image import combine_and_resize_frames, combine_frames, resize_frame
-import cv2
+
+from src.camera.types import CameraFrame
+from numpy import float32
+
+from cv2.typing import MatLike, Size
 from typing import List, Tuple
-import numpy as np
+from numpy.typing import NDArray
+
 
 @dataclass
 class StereoFrame:
-    frame_l: MatLike
-    frame_r: MatLike
+    camera_frame_l: CameraFrame
+    camera_frame_r: CameraFrame
 
 
     def to_list(self) -> list[MatLike]:
-        return [self.frame_l, self.frame_r]
+        return [self.camera_frame_l.frame, self.camera_frame_r.frame]
     
 
     def copy(self):
-        return StereoFrame(frame_l=self.frame_l.copy(), frame_r=self.frame_r.copy())
+        return StereoFrame(camera_frame_l=self.camera_frame_l.copy(), camera_frame_r=self.camera_frame_r.copy())    
     
 
-    def flip(self, flipCode: int) -> None:
-        cv2.flip(src=self.frame_l, flipCode=flipCode, dst=self.frame_l)
-        cv2.flip(src=self.frame_r, flipCode=flipCode, dst=self.frame_r)
+    def flip(self, flip_code: int, in_place: bool = True) -> tuple[MatLike, MatLike]:
+        return self.camera_frame_l.flip(flip_code=flip_code, in_place=in_place), self.camera_frame_r.flip(flip_code=flip_code, in_place=in_place)
 
     
     def combine_frames(self, horizontal: bool = True) -> MatLike:
@@ -36,13 +39,13 @@ class StereoFrame:
     def combined_and_resize_frames(self, new_size: tuple[int, int], horizontal: bool = True) -> MatLike:
         return combine_and_resize_frames(frame_size=new_size, frames=self.to_list(), horizontal=horizontal)
 
+
 @dataclass
 class RawData:
     collected: int
     enough: bool
-    obj_points: List[np.ndarray]
-    img_points_left: List[np.ndarray]
-    img_points_right: List[np.ndarray]
+    obj_points: List[NDArray[float32]]
+    img_points_left: List[MatLike]
+    img_points_right: List[MatLike]
     saved_images_count: int
     image_size: Tuple[int, int]
-

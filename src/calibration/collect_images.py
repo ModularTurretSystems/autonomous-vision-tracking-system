@@ -1,13 +1,14 @@
 # src/calibration/collect_images.py
 
-from src.calibration.patterns.chessboard import ChessboardPattern
-from src.vision.stereo.calibration_session import StereoCalibrationSession
-from src.vision.stereo.capture import StereoCapture
-from src.vision.stereo.system import StereoSystem
+import cv2
 import os
 import numpy as np
 from pathlib import Path
-import cv2
+
+from src.vision.stereo.system import StereoSystem
+from src.vision.stereo.capture import StereoCapture
+from src.calibration.patterns.chessboard import ChessboardPattern
+from src.vision.stereo.calibration_session import StereoCalibrationSession
 
 
 # ========== CONSTANTS for collect_images() ==========

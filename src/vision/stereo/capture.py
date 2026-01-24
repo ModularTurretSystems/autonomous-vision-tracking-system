@@ -1,8 +1,10 @@
-from pathlib import Path
 import cv2
+from pathlib import Path
+
+from .system import StereoSystem
+
 from cv2.typing import MatLike
 from .types import StereoFrame
-from .system import StereoSystem
 
 
 class StereoCapture:
@@ -22,6 +24,7 @@ class StereoCapture:
         self.save_path_right.mkdir(parents=True, exist_ok=True)
 
         self.number_of_frames: int = 0
+
 
     def get_number_of_frames(self) -> int:
         "Number of successfully saved pairs of frames"
@@ -53,10 +56,8 @@ class StereoCapture:
         left_name: str = f"{self.save_path_left}/{self.number_of_frames}.jpg"
         right_name: str = f"{self.save_path_right}/{self.number_of_frames}.jpg"
 
-        cv2.imwrite(filename=left_name, img=frame.frame_l)
-        cv2.imwrite(filename=right_name, img=frame.frame_r)
-
-        
+        cv2.imwrite(filename=left_name, img=frame.camera_frame_l.frame)
+        cv2.imwrite(filename=right_name, img=frame.camera_frame_r.frame)
             
         self.number_of_frames += 1
 
