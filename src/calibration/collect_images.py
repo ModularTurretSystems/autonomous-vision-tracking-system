@@ -1,27 +1,61 @@
-# calibration/collect_images.py
+# src/calibration/collect_images.py
 
+from src.calibration.patterns.chessboard import ChessboardPattern
 from src.vision.stereo.calibration_session import StereoCalibrationSession
 from src.vision.stereo.capture import StereoCapture
 from src.vision.stereo.system import StereoSystem
 import os
 import numpy as np
 from pathlib import Path
+import cv2
+
+
+# ========== CONSTANTS for collect_images() ==========
+CAM_L_ID = 0
+CAM_R_ID = 1
+
+PATH = "data/calibration_images"
+
+PATTERN_SIZE = (9, 16)
+FLAGS = cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE
+REFINE = True
+WIN_SIZE = (11, 11)
+ZERO_ZONE = (-1, -1)
+CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+
+RESOLUTION = (1280, 720)
+MIN_GOOD_FRAMES = 15
+MAX_GOOD_FRAMES = 40
+
+SQUARE_SIZE_MM = 30.0
+
+# ==================================================
 
 
 def collect_images() -> None:
     os.environ["OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS"] = "0"
 
-    stereo_system = StereoSystem(left=0, right=1)
-    save_dir = Path("data/calibration_images")
+    stereo_system = StereoSystem(left=CAM_L_ID, right=CAM_R_ID)
+    save_dir = Path(PATH)
     save_dir.mkdir(exist_ok=True, parents=True)
 
     capture = StereoCapture(stereo_system=stereo_system, save_dir=save_dir)
 
+    pattern = ChessboardPattern(
+        pattern_size=PATTERN_SIZE,
+        flags=FLAGS,
+        refine=REFINE,
+        win_size=WIN_SIZE,
+        zero_zone=ZERO_ZONE,
+        criteria=CRITERIA
+    )
+
     session = StereoCalibrationSession(
         stereo_capture=capture,
-        pattern_size=(9, 6),
-        min_good_frames=15,
-        max_good_frames=40
+        pattern=pattern,
+        combined_resolution=RESOLUTION,
+        min_good_frames=MIN_GOOD_FRAMES,
+        max_good_frames=MAX_GOOD_FRAMES
     )
 
     print("\n=== Запуск сессии калибровки ===")
@@ -50,9 +84,8 @@ def collect_images() -> None:
             img_points_left=result.img_points_left,
             img_points_right=result.img_points_right,
             collected_good=result.collected,
-            pattern_size=(9, 6),
-            square_size_mm=30.0,
-            
+            pattern_size=PATTERN_SIZE,
+            square_size_mm=SQUARE_SIZE_MM,
         )
 
         print(f"\nТочки калибровки сохранены в:")

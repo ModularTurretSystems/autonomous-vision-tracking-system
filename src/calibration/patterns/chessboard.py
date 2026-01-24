@@ -10,7 +10,7 @@ class ChessboardPattern():
         pattern_size: Size,
         *,
         flags: int = ChessboardFlags.DEFAULT,
-        refine: bool = True,
+        refine: bool = False,
         win_size: Size | None = None,
         zero_zone: Size | None = None,
         criteria: TermCriteria | None = None

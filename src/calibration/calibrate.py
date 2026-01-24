@@ -2,8 +2,54 @@ import cv2
 import numpy as np
 from pathlib import Path
 from typing import Dict, Any, Tuple
+from cv2.typing import MatLike
 
 from src.calibration.types import CalibratedData
+
+
+
+# ========== CONSTANTS for out() ==========
+NPZ_FILE_PATH = "data/calibration_results/calibration_points.npz"
+TEST_LEFT_PATH = "data/calibration_images/left_cam/1.jpg"
+TEST_RIGHT_PATH = "data/calibration_images/left_cam/1.jpg"
+IMAGE_SIZE = (1280, 720)
+
+# ========== CONSTANTS for load_points_data() ==========
+LPD_PATTERN_SIZE_DV = (9, 6)
+LPD_SQUARE_SIZE_MM = 30.0
+LPD_COLLECTED_GOOD_DV = 0
+LPD_IMAGE_SIZE_DV = (1280, 720)
+
+# ========== CONSTANTS for stereo_calibrate() ==========
+CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 1e-5)
+FLAGS = cv2.CALIB_RATIONAL_MODEL | cv2.CALIB_FIX_K3 |cv2.CALIB_FIX_K4 | cv2.CALIB_FIX_K5
+
+# ========== CONSTANTS for compute_rectification_maps()
+ALPHA_VALUE = 0
+M1TYPE = cv2.CV_32FC1
+
+# ========== CONSTANTS for show_disparity_map() ==========
+WINDOW_SCALE = 0.7
+
+MIN_DISPARITY = 0
+NUM_DISPARITIES = 64
+BLOCK_SIZE = 5
+P1 = 8 * 3 * 5**2
+P2 = 32 * 3 * 5**2
+DISP12_MAX_DIFF = 1
+UNIQUENESS_RATIO = 10
+SPECKLE_WINDOW_SIZE = 100
+SPECKLE_RANGE = 32
+
+UNKNOWN_DIVISON_COEFF = 16.0
+
+ALPHA = 0
+BETA = 255
+
+POINTS_3D_EXAMPLE_AREA_H = 200
+POINTS_3D_EXAMPLE_AREA_W = 300
+
+# ==================================================
 
 
 def load_points_data(npz_path: str | Path) -> Dict[str, Any]:
@@ -12,16 +58,16 @@ def load_points_data(npz_path: str | Path) -> Dict[str, Any]:
         raise FileNotFoundError(f"File wasn't found: {npz_path}")
 
     print(f"Download calibration points: {npz_path.resolve()}")
-    data = np.load(npz_path, allow_pickle=True)
+    data: Any = np.load(npz_path, allow_pickle=True)
 
     return {
         "obj_points": data["obj_points"],
         "img_points_left": data["img_points_left"],
         "img_points_right": data["img_points_right"],
-        "pattern_size": tuple(data.get("pattern_size", (9, 6))),
-        "square_size_mm": float(data.get("square_size_mm", 30.0)),
-        "collected_good": int(data.get("collected_good", 0)),
-        "image_size": tuple(data.get("image_size", (1280, 720))),
+        "pattern_size": tuple(data.get("pattern_size", LPD_PATTERN_SIZE_DV)),
+        "square_size_mm": float(data.get("square_size_mm", LPD_SQUARE_SIZE_MM)),
+        "collected_good": int(data.get("collected_good", LPD_COLLECTED_GOOD_DV)),
+        "image_size": tuple(data.get("image_size", LPD_IMAGE_SIZE_DV)),
     }
 
 
@@ -33,9 +79,9 @@ def stereo_calibrate(
     imgpoints_l = data["img_points_left"]
     imgpoints_r = data["img_points_right"]
 
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 1e-5)
+    criteria = CRITERIA
 
-    flags = cv2.CALIB_RATIONAL_MODEL | cv2.CALIB_FIX_K3 |cv2.CALIB_FIX_K4 | cv2.CALIB_FIX_K5
+    flags = FLAGS
 
     # Create empty matrix
     empty_camera = np.eye(3, dtype=np.float64)
@@ -66,33 +112,44 @@ def stereo_calibrate(
         F=F
     )
 
+
 def compute_rectification_maps(
     calib: CalibratedData,
     image_size: Tuple[int, int]
-) -> Tuple:
+) -> Tuple[Tuple[MatLike, MatLike], Tuple[MatLike, MatLike], MatLike]:
     R1, R2, P1, P2, Q, _, _ = cv2.stereoRectify(
         calib.matx_l, calib.dist_l,
         calib.matx_r, calib.dist_r,
-        image_size, calib.R, calib.T, alpha=0
+        image_size, calib.R, calib.T, alpha=ALPHA_VALUE
     )
 
     map_l_x, map_l_y = cv2.initUndistortRectifyMap(
-        calib.matx_l, calib.dist_l, R1, P1, image_size, cv2.CV_32FC1
+        cameraMatrix=calib.matx_l,
+        distCoeffs=calib.dist_l,
+        R=R1,
+        newCameraMatrix=P1,
+        size=image_size,
+        m1type=M1TYPE
     )
     map_r_x, map_r_y = cv2.initUndistortRectifyMap(
-        calib.matx_r, calib.dist_r, R2, P2, image_size, cv2.CV_32FC1
+        cameraMatrix=calib.matx_r,
+        distCoeffs=calib.dist_r,
+        R=R2,
+        newCameraMatrix=P2,
+        size=image_size,
+        m1type=M1TYPE
     )
 
     return (map_l_x, map_l_y), (map_r_x, map_r_y), Q
 
 
 def show_disparity_map(
-    img_l: np.ndarray,
-    img_r: np.ndarray,
-    map_l: Tuple[np.ndarray, np.ndarray],
-    map_r: Tuple[np.ndarray, np.ndarray],
-    Q: np.ndarray,
-    window_scale: float = 0.7
+    img_l: MatLike,
+    img_r: MatLike,
+    map_l: Tuple[MatLike, MatLike],
+    map_r: Tuple[MatLike, MatLike],
+    Q: MatLike,
+    window_scale: float = WINDOW_SCALE
 ):
     """Показывает rectified изображения и карту глубины"""
     # Rectify
@@ -104,22 +161,22 @@ def show_disparity_map(
     cv2.imshow("Rectified (left | right)", cv2.resize(combined_rect, None, fx=window_scale, fy=window_scale))
 
     stereo = cv2.StereoSGBM.create(
-        minDisparity=0,
-        numDisparities=64,
-        blockSize=5,
-        P1=8 * 3 * 5**2,
-        P2=32 * 3 * 5**2,
-        disp12MaxDiff=1,
-        uniquenessRatio=10,
-        speckleWindowSize=100,
-        speckleRange=32
+        minDisparity=MIN_DISPARITY,
+        numDisparities=NUM_DISPARITIES,
+        blockSize=BLOCK_SIZE,
+        P1=P1,
+        P2=P2,
+        disp12MaxDiff=DISP12_MAX_DIFF,
+        uniquenessRatio=UNIQUENESS_RATIO,
+        speckleWindowSize=SPECKLE_WINDOW_SIZE,
+        speckleRange=SPECKLE_RANGE
     )
 
-    disparity = stereo.compute(rect_l, rect_r).astype(np.float32) / 16.0
+    disparity = stereo.compute(rect_l, rect_r).astype(np.float32) / UNKNOWN_DIVISON_COEFF
 
     # Нормализация для отображения
     disp_vis = np.empty_like(disparity, dtype=np.uint8)
-    cv2.normalize(disparity, disp_vis, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+    cv2.normalize(disparity, disp_vis, alpha=ALPHA, beta=BETA, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
     disp_color = cv2.applyColorMap(disp_vis, cv2.COLORMAP_JET)
 
     cv2.imshow("Disparity (grayscale)", cv2.resize(disp_vis, None, fx=window_scale, fy=window_scale))
@@ -127,7 +184,7 @@ def show_disparity_map(
 
     # Опционально: 3D-точки (point cloud)
     points_3d = cv2.reprojectImageTo3D(disparity, Q)
-    print("Пример 3D-точки (x,y,z) в мм:", points_3d[200, 300])  # пример точки
+    print("Пример 3D-точки (x,y,z) в мм:", points_3d[POINTS_3D_EXAMPLE_AREA_H, POINTS_3D_EXAMPLE_AREA_W])  # пример точки
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
@@ -135,10 +192,10 @@ def show_disparity_map(
 
 def out():
     # Укажи свой файл (из collect_images.py)
-    npz_file = "data/calibration_results/calibration_points.npz"  # ← измени на актуальный
+    npz_file = NPZ_FILE_PATH  # ← измени на актуальный
 
-    test_left_path = "data/calibration_images/left_cam/1.jpg"
-    test_right_path = "data/calibration_images/right_cam/1.jpg"
+    test_left_path = TEST_LEFT_PATH
+    test_right_path = TEST_RIGHT_PATH
 
     try:
         points_data = load_points_data(npz_file)
@@ -147,12 +204,12 @@ def out():
 
         print(f"RMS: {calib.rms:.4f}")
 
-        maps_l, maps_r, Q = compute_rectification_maps(calib, image_size=(1280, 720))
+        maps_l, maps_r, Q = compute_rectification_maps(calib, image_size=IMAGE_SIZE)
 
         test_l = cv2.imread(test_left_path)
         test_r = cv2.imread(test_right_path)
 
-        if test_l is None or test_r is None:
+        if test_l is None or test_r is None: #type: ignore
             print("Не удалось загрузить тестовые кадры — пропускаем disparity map")
         else:
             print("\nПоказываем карту глубины...")
@@ -162,6 +219,7 @@ def out():
         print(f"Ошибка: {e}")
         import traceback
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     out()

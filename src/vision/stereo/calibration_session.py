@@ -1,14 +1,42 @@
 # src/vision/stereo/calibration_session.py
 
 import cv2
+from cv2.typing import MatLike
 import numpy as np
-from pathlib import Path
 from typing import Tuple, List, Optional
 
 from .capture import StereoCapture
-from .types import RawData, StereoFrame
-from src.calibration.chessboard import find_chessboard_corners
+from .types import RawData
+from src.calibration.patterns.chessboard import ChessboardPattern
 from src.utils.image import combine_and_resize_frames
+
+from numpy.typing import NDArray
+from numpy import float32
+
+
+# ========== CONSTATNS for run() ==========
+WIN_NAME = "Stereo Camera Calibration"
+
+SAVE_BUTTON = 's'
+EXIT_BUTTON = 'q'
+
+GOOD_COLOR = (0, 255, 0)
+GOOD_STATUS_TEXT = "GOOD"
+BAD_COLOR = (0, 0, 255)
+BAD_STATUS_TEXT = "BAD"
+
+ORG = (20, 40)
+FONT = cv2.FONT_HERSHEY_SIMPLEX
+FONT_SCALE = 0.9
+FONT_THICKNESS = 2
+
+# ========== CONSTATNS for __init__() ==========
+COMBINED_RESOLUTION = (1280, 720)
+MIN_GOOD_FRAMES = 15
+SQUARE_SIZE_MM = 30.0
+
+# ==================================================
+
 
 
 class StereoCalibrationSession:
@@ -19,75 +47,56 @@ class StereoCalibrationSession:
     def __init__(
         self,
         stereo_capture: StereoCapture,
-        pattern_size: Tuple[int, int] = (9, 6),
-        combined_resolution: Tuple[int, int] = (1280, 720),
-        min_good_frames: int = 15,
+        pattern: ChessboardPattern,
+        combined_resolution: Tuple[int, int] = COMBINED_RESOLUTION,
+        min_good_frames: int = MIN_GOOD_FRAMES,
         max_good_frames: Optional[int] = None,
     ) -> None:
         self.stereo_capture = stereo_capture
-        self.pattern_size = pattern_size
+        self.pattern = pattern
+
         self.combined_resolution = combined_resolution
         self.min_good_frames = min_good_frames
         self.max_good_frames = max_good_frames
 
-        self.SQUARE_SIZE_MM = 30.0
-        self.FLAGS = cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE
-        self.WIN_SIZE = (11, 11)
-        self.ZERO_ZONE = (-1, -1)
-        self.CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+        self.SQUARE_SIZE_MM = SQUARE_SIZE_MM
 
-        self.obj_points: List[np.ndarray] = []
-        self.img_points_left: List[np.ndarray] = []
-        self.img_points_right: List[np.ndarray] = []
+        self.obj_points: List[NDArray[float32]] = []
+        self.img_points_left: List[MatLike] = []
+        self.img_points_right: List[MatLike] = []
 
-        self.objp_template: np.ndarray | None = None
+        self.objp_template: NDArray[float32] | None = None
         self._prepare_object_points()  # ← правильный вызов приватного метода
+
 
     def _prepare_object_points(self) -> None:
         """Generate 3D coordinates of chessboard corners."""
-        nx, ny = self.pattern_size
+        nx, ny = self.pattern.pattern_size
         objp = np.zeros((nx * ny, 3), np.float32)
         objp[:, :2] = np.mgrid[0:nx, 0:ny].T.reshape(-1, 2)
         objp *= self.SQUARE_SIZE_MM
         self.objp_template = objp
 
+
     def run(self) -> RawData:
         """Starts an interactive session. Returns dict with collected data."""
-        winname = "Stereo Camera Calibration"
+        winname = WIN_NAME
         collected = 0
 
         cv2.namedWindow(winname)  # ← обязательно перед imshow
 
-        print("Управление: 's' — сохранить (если доска найдена), 'q' — выйти")
+        print(f"Управление: {SAVE_BUTTON} — сохранить (если доска найдена), {EXIT_BUTTON} — выйти")
 
         while True:
             stereo_frame = self.stereo_capture.capture_frame()
-            stereo_frame.flip(flipCode=1)
 
-            ret_l, corners_l = find_chessboard_corners(
-                img=stereo_frame.frame_l,
-                pattern_size=self.pattern_size,
-                flags=self.FLAGS,
-                refine=True,
-                win_size=self.WIN_SIZE,
-                zero_zone=self.ZERO_ZONE,
-                criteria=self.CRITERIA
-            )
-
-            ret_r, corners_r = find_chessboard_corners(
-                img=stereo_frame.frame_r,
-                pattern_size=self.pattern_size,
-                flags=self.FLAGS,
-                refine=True,
-                win_size=self.WIN_SIZE,
-                zero_zone=self.ZERO_ZONE,
-                criteria=self.CRITERIA
-            )
+            res_l = self.pattern.detect_corners(img=stereo_frame.frame_l)
+            res_r = self.pattern.detect_corners(img=stereo_frame.frame_r)
 
             display_frame = stereo_frame.copy()
 
-            cv2.drawChessboardCorners(display_frame.frame_l, self.pattern_size, corners_l, ret_l)
-            cv2.drawChessboardCorners(display_frame.frame_r, self.pattern_size, corners_r, ret_r)
+            self.pattern.draw_corners(img=display_frame.frame_l, corners=res_l.corners, patternWasFound=res_l.found)
+            self.pattern.draw_corners(img=display_frame.frame_r, corners=res_r.corners, patternWasFound=res_r.found)
 
             combined = combine_and_resize_frames(
                 frame_size=self.combined_resolution,
@@ -96,27 +105,27 @@ class StereoCalibrationSession:
             )
 
             status_text = f"Saved: {self.stereo_capture.get_number_of_frames} | Good: {collected} / min {self.min_good_frames}"
-            color = (0, 255, 0) if ret_l and ret_r else (0, 0, 255)
-            if ret_l and ret_r:
-                status_text += "GOOD"
+            if res_l.found and res_r.found:
+                color = GOOD_COLOR
+                status_text += GOOD_STATUS_TEXT
+            else:
+                color = BAD_COLOR
+                status_text += BAD_STATUS_TEXT
 
-            cv2.putText(combined, status_text, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
-
+            cv2.putText(img=combined, text=status_text, org=ORG, fontFace=FONT, fontScale=FONT_SCALE, color=color, thickness=FONT_THICKNESS)
             cv2.imshow(winname, combined)
 
-            k = cv2.waitKey(1) & 0xFF
+            k = cv2.waitKey(delay=1) & 0xFF
 
-            if k == ord('q'):
-                print("Выход по 'q'")
+            if k == ord(EXIT_BUTTON):
+                print(f"Выход по {EXIT_BUTTON}")
                 break
 
-            if k == ord('s') and ret_l and ret_r:
-                assert self.objp_template is not None, "objp_template не инициализирован"
-
+            elif k == ord(SAVE_BUTTON) and res_l.found and res_r.found:
                 self.stereo_capture.save_frame(stereo_frame)
 
-                self.img_points_left.append(corners_l)
-                self.img_points_right.append(corners_r)
+                self.img_points_left.append(res_l.corners)
+                self.img_points_right.append(res_r.corners)
                 self.obj_points.append(self.objp_template.copy())
 
                 collected += 1
