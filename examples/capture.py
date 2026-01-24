@@ -36,7 +36,6 @@ pattern = ChessboardPattern(pattern_size=PATTERN_SIZE, flags=FLAGS, refine=True,
 
 while(1):
     stereo_frame = stereo_capture.capture_frame()
-    stereo_frame.flip(flipCode=1)
 
     res_l = pattern.detect_corners(img=stereo_frame.frame_l)
     res_r = pattern.detect_corners(img=stereo_frame.frame_r)
@@ -46,7 +45,8 @@ while(1):
     pattern.draw_corners(img=stereo_frame_copy.frame_l, corners=res_l.corners, patternWasFound=res_l.found)
     pattern.draw_corners(img=stereo_frame_copy.frame_r, corners=res_r.corners, patternWasFound=res_r.found)
 
-    frame = combine_and_resize_frames(frame_size=COMBINED_RESOLUTION, frames=stereo_frame.to_list(), horizontal=True)
+    stereo_frame_copy.flip(flipCode=1)
+    frame = combine_and_resize_frames(frame_size=COMBINED_RESOLUTION, frames=stereo_frame_copy.to_list(), horizontal=True)
 
     cv2.imshow("c", frame)
 
@@ -56,4 +56,4 @@ while(1):
         break
     
     if k == ord('s') and res_l.found and res_r.found:
-        stereo_capture.save_frame(frame=stereo_frame_copy)
+        stereo_capture.save_frame(frame=stereo_frame)

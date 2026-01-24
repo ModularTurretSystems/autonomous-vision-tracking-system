@@ -38,12 +38,12 @@ pattern = ChessboardPattern(pattern_size=PATTERN_SIZE, flags=FLAGS, refine=True,
 
 while(1):
     _, frame = cam.capture_frame()
-    cv2.flip(src=frame, flipCode=1, dst=frame)
 
     res = pattern.detect_corners(img=frame)
     
     frame_with_corners = frame.copy()
     pattern.draw_corners(img=frame_with_corners, corners=res.corners, patternWasFound=res.found)
+    cv2.flip(src=frame_with_corners, flipCode=1, dst=frame_with_corners)
 
     res_frame = combine_and_resize_frames(frame_size=SCREEN_RESOLUTION, frames=[frame, frame_with_corners], horizontal=True)
 
