@@ -3,6 +3,8 @@ from pathlib import Path
 
 from src.camera.camera import Camera
 
+from src.utils.path import ensure_directory
+
 from src.camera.types import CameraFrame
 
 from cv2.typing import MatLike
@@ -29,17 +31,7 @@ class MonoCapture:
 
 
     def set_save_dir(self, save_dir: Path | str) -> None:
-        p = Path(save_dir)
-
-        if not p.exists():
-            try:
-                p.mkdir(parents=True, exist_ok=True)
-            except Exception as e:
-                raise OSError(f"Failed to create directory {p}: {e}") from e
-        elif not p.is_dir():
-            raise NotADirectoryError(f"The path exists but is not a directory: {p}")
-
-        self.save_dir = p
+        self.save_dir = ensure_directory(path=save_dir)
 
 
     def capture_frame(self) -> CameraFrame:
