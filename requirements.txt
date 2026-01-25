@@ -11,6 +11,7 @@ kiwisolver==1.4.9
 matplotlib==3.10.8
 mediapipe==0.10.21
 ml_dtypes==0.5.4
+natsort==8.4.0
 numpy==1.26.4
 opencv-contrib-python==4.11.0.86
 opt_einsum==3.4.0
