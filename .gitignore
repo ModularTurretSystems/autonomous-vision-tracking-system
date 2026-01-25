@@ -8,3 +8,6 @@ tempCodeRunnerFile.*
 
 # Data folder
 data/
+
+# macOS
+.DS_Store

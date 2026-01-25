@@ -1,7 +1,6 @@
-from src.calibration import collect_images, calibrate
+from src.calibration import calibrate
 
 def main():
-    collect_images.collect_images()
     calibrate.out()
     
 
