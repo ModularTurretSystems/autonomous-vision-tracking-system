@@ -28,6 +28,8 @@ pip install -r requirements.txt
 ```
 src/
 ├─ calibration/
+│  ├─ dataset/
+│  |  └─ directory.py
 │  ├─ patterns/
 │  │  ├─ charuco.py
 │  │  ├─ chessboard.py
@@ -43,7 +45,9 @@ src/
 ├─ utils/
 │  ├─ camera_utils.py
 │  ├─ cv2_logging.py
+│  ├─ file_utils.py
 │  ├─ image.py
+│  ├─ path.py
 │  └─ types.py
 ├─ vision/
 |  ├─ mono/
@@ -60,6 +64,7 @@ src/
 │  ├─ stereo/
 |  |  └─ capture.py
 │  ├─ charucoCreate.py
+│  ├─ extractCornersFromDirectory.py
 │  ├─ charucoDetection.py
 │  ├─ findChessboardCorners.py  
 |  └─ testingOverload.py
