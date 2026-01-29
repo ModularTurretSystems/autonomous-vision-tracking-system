@@ -117,7 +117,7 @@ class MonoCalibrator():
                 )
             image_points = self.image_points
 
-        self.objps = list(np.repeat(self.objp[np.newaxis, :, :], len(image_points), axis=0))
+        if self.objps is None: self.objps = list(np.repeat(self.objp[np.newaxis, :, :], len(image_points), axis=0)) #type: ignore
 
         if i_fixed_point is None: i_fixed_point = self.i_fixed_point
         
