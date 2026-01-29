@@ -1,8 +1,10 @@
-from src.calibration import calibrate
+from src.calibration.calibrate import save_calibration
+from src.tracking.tracking import tracking
+
 
 def main():
-    calibrate.out()
-    
+    save_calibration()
+    tracking()
 
 if __name__ == "__main__":
     main()

@@ -1,29 +1,27 @@
 import cv2
 import numpy as np
+
+from src.utils.types import CFG
 from pathlib import Path
 from typing import Dict, Any, Tuple
-
-from src.utils.camera_utils import estimate_AOV
-
 from cv2.typing import MatLike
-from src.calibration.types import CalibratedData
-
+from .types import CalibratedData
 
 # ========== CONSTANTS for out() ==========
 NPZ_FILE_PATH = "data/calibration_results/calibration_points.npz"
-TEST_LEFT_PATH = "data/calibration_images/left_cam/"
-TEST_RIGHT_PATH = "data/calibration_images/right_cam/"
-IMAGE_SIZE = (640, 480)
+CALIBRATION_OUTPUT_PATH = "data/calibration_results/final_stereo_calibration.npz"
+IMAGE_SIZE = CFG.FRAME_SIZE
 
 # ========== CONSTANTS for load_points_data() ==========
 LPD_PATTERN_SIZE_DV = (9, 6)
 LPD_SQUARE_SIZE_MM = 30.0
 LPD_COLLECTED_GOOD_DV = 0
-LPD_IMAGE_SIZE_DV = (640, 480)
+LPD_IMAGE_SIZE_DV = CFG.FRAME_SIZE
 
 # ========== CONSTANTS for stereo_calibrate() ==========
 CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 1e-5)
-FLAGS = cv2.CALIB_RATIONAL_MODEL | cv2.CALIB_FIX_K3 |cv2.CALIB_FIX_K4 | cv2.CALIB_FIX_K5
+FLAGS = cv2.CALIB_RATIONAL_MODEL | cv2.CALIB_FIX_K3 
+IFIXEDPOINT = (LPD_PATTERN_SIZE_DV[0]//2) * LPD_PATTERN_SIZE_DV[0] + (LPD_PATTERN_SIZE_DV[1]//2)
 
 # ========== CONSTANTS for compute_rectification_maps()
 ALPHA_VALUE = 0
@@ -88,20 +86,42 @@ def stereo_calibrate(
     empty_camera = np.eye(3, dtype=np.float64)
     empty_dist = np.zeros(5, dtype=np.float64)
 
+    _, mtx_l, dist_l, _, _, _ = cv2.calibrateCameraRO(
+        objectPoints=objpoints,
+        imagePoints=imgpoints_l,
+        imageSize= IMAGE_SIZE,
+        iFixedPoint= IFIXEDPOINT,
+        cameraMatrix=empty_camera,
+        distCoeffs= empty_dist,
+        flags=FLAGS,
+        criteria=CRITERIA
+    )
+
+    _, mtx_r, dist_r, _, _, _ = cv2.calibrateCameraRO(
+        objectPoints=objpoints,
+        imagePoints=imgpoints_r,
+        imageSize= IMAGE_SIZE,
+        iFixedPoint= IFIXEDPOINT,
+        cameraMatrix=empty_camera,
+        distCoeffs= empty_dist,
+        flags=FLAGS,
+        criteria=CRITERIA
+    )
+
     ret, mtx_l, dist_l, mtx_r, dist_r, R, T, E, F = cv2.stereoCalibrate(
         objectPoints=objpoints,
         imagePoints1=imgpoints_l,
         imagePoints2=imgpoints_r,
-        cameraMatrix1=empty_camera,           
-        distCoeffs1=empty_dist,               
-        cameraMatrix2=empty_camera,
-        distCoeffs2=empty_dist,
+        cameraMatrix1=mtx_l,           
+        distCoeffs1=dist_l,               
+        cameraMatrix2=mtx_r,
+        distCoeffs2=dist_r,
         imageSize=image_size,
         flags=flags,
         criteria=criteria
     )
 
-    AOV_params = estimate_AOV(matx=mtx_l, img_size=IMAGE_SIZE)
+    # AOV_params = estimate_AOV(matx=mtx_l, img_size=IMAGE_SIZE)
 
     return CalibratedData(
         rms=ret,
@@ -112,8 +132,7 @@ def stereo_calibrate(
         R=R,
         T=T,
         E=E,
-        F=F,
-        AOV = AOV_params
+        F=F
     )
 
 
@@ -147,88 +166,37 @@ def compute_rectification_maps(
     return (map_l_x, map_l_y), (map_r_x, map_r_y), Q
 
 
-def show_disparity_map(
-    img_l: MatLike,
-    img_r: MatLike,
-    map_l: Tuple[MatLike, MatLike],
-    map_r: Tuple[MatLike, MatLike],
-    Q: MatLike,
-    img_num: int,
-    window_scale: float = WINDOW_SCALE
-    ):
-    """Показывает rectified изображения и карту глубины"""
-    # Rectify
-    rect_l = cv2.remap(img_l, map_l[0], map_l[1], cv2.INTER_LINEAR)
-    rect_r = cv2.remap(img_r, map_r[0], map_r[1], cv2.INTER_LINEAR)
+def save_calibration(
+) -> None:
     
-    # Смотрим на rectified пару рядом
-    combined_rect = np.hstack((rect_l, rect_r))
-    cv2.imshow(f"Rectified (left | right) img {img_num}", cv2.resize(combined_rect, None, fx=window_scale, fy=window_scale))
-    cv2.moveWindow(f"Rectified (left | right) img {img_num}", 550, 50)
-    stereo = cv2.StereoSGBM.create(
-        minDisparity=MIN_DISPARITY,
-        numDisparities=NUM_DISPARITIES,
-        blockSize=BLOCK_SIZE,
-        P1=P1,
-        P2=P2,
-        disp12MaxDiff=DISP12_MAX_DIFF,
-        uniquenessRatio=UNIQUENESS_RATIO,
-        speckleWindowSize=SPECKLE_WINDOW_SIZE,
-        speckleRange=SPECKLE_RANGE
-    )
+    output_path = Path(CALIBRATION_OUTPUT_PATH)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    disparity = stereo.compute(rect_l, rect_r).astype(np.float32) / UNKNOWN_DIVISON_COEFF
-
-    # Нормализация для отображения
-    disp_vis = np.empty_like(disparity, dtype=np.uint8)
-    cv2.normalize(disparity, disp_vis, alpha=ALPHA, beta=BETA, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-    disp_color = cv2.applyColorMap(disp_vis, cv2.COLORMAP_JET)
-
-    cv2.imshow(f"Disparity (grayscale) img {img_num}", cv2.resize(disp_vis, None, fx=window_scale, fy=window_scale))
-    cv2.moveWindow(f"Disparity (grayscale) img {img_num}", 50, 400)
-    cv2.imshow(f"Disparity (color map) img {img_num}", cv2.resize(disp_color, None, fx=window_scale, fy=window_scale))
-    cv2.moveWindow(f"Disparity (color map) img {img_num}", 50, 50)
-    # Опционально: 3D-точки (point cloud)
-    points_3d = cv2.reprojectImageTo3D(disparity, Q)
-    print("Пример 3D-точки (x,y,z) в мм:", points_3d[POINTS_3D_EXAMPLE_AREA_H, POINTS_3D_EXAMPLE_AREA_W])  # пример точки
-
-    cv2.waitKey(500)
-    cv2.destroyAllWindows()
-
-
-def out():
     npz_file = NPZ_FILE_PATH
 
-    test_left_path = TEST_LEFT_PATH
-    test_right_path = TEST_RIGHT_PATH
-
     try:
-        points_data = load_points_data(npz_file)
+        points_data = load_points_data(npz_path=npz_file)
+        
+        calib = stereo_calibrate(data=points_data)
 
-        calib = stereo_calibrate(points_data)
-
+        maps_l, maps_r, Q = compute_rectification_maps(calib=calib, image_size=IMAGE_SIZE)
+    
         print(f"RMS: {calib.rms:.4f}")
 
-        maps_l, maps_r, Q = compute_rectification_maps(calib, image_size=IMAGE_SIZE)
+        np.savez(
+        output_path,
+        map_l_x=maps_l[0],  
+        map_l_y=maps_l[1],
+        map_r_x=maps_r[0],
+        map_r_y=maps_r[1],
+        Q=Q
+    )
 
-        count_photos = len([f for f in Path(test_left_path).iterdir() if f.suffix.lower() == '.jpg'])
-
-        for num in range(count_photos):
-            test_l = cv2.imread(str(Path(test_left_path) / f"{num}.jpg"))
-            test_r = cv2.imread(str(Path(test_right_path) / f"{num}.jpg"))
-
-            if test_l is None or test_r is None: #type: ignore
-                print("Не удалось загрузить тестовые кадры — пропускаем disparity map")
-            else:
-                print("\nПоказываем карту глубины...")
-                show_disparity_map(test_l, test_r, maps_l, maps_r, Q, num)
-           
-            
     except Exception as e:
-        print(f"Ошибка: {e}")
+        print(f"❌ Ошибка при сохранении калибровки: {e}")
         import traceback
         traceback.print_exc()
 
 
 if __name__ == "__main__":
-    out()
+    save_calibration()

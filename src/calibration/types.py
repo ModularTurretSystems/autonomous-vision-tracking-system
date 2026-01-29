@@ -1,8 +1,6 @@
 from dataclasses import dataclass
-
 from cv2.typing import MatLike
-from src.utils.types import AOVParameters
-
+from typing import Tuple
 
 @dataclass
 class CalibratedData:
@@ -15,4 +13,12 @@ class CalibratedData:
     T: MatLike
     E: MatLike
     F: MatLike
-    AOV: AOVParameters
+
+@dataclass
+class FinalCalibratedData:
+    CalibratedData: CalibratedData
+    map_l: Tuple[MatLike, MatLike]
+    map_r: Tuple[MatLike, MatLike]
+    Q: MatLike
+    image_size: Tuple[int, int]
+    

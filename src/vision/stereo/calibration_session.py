@@ -9,7 +9,7 @@ from .capture import StereoCapture
 from .types import RawData
 from src.calibration.patterns.chessboard import ChessboardPattern
 from src.utils.image import combine_and_resize_frames
-
+from src.utils.types import CFG
 from numpy.typing import NDArray
 from numpy import float32
 
@@ -31,7 +31,7 @@ FONT_SCALE = 0.9
 FONT_THICKNESS = 2
 
 # ========== CONSTATNS for __init__() ==========
-COMBINED_RESOLUTION = (1280, 720)
+COMBINED_RESOLUTION = CFG.DISPLAY_SIZE
 MIN_GOOD_FRAMES = 15
 SQUARE_SIZE_MM = 30.0
 
@@ -82,12 +82,15 @@ class StereoCalibrationSession:
         winname = WIN_NAME
         collected = 0
 
-        cv2.namedWindow(winname)  # ← обязательно перед imshow
+        cv2.namedWindow(winname)  
 
         print(f"Управление: {SAVE_BUTTON} — сохранить (если доска найдена), {EXIT_BUTTON} — выйти")
 
         while True:
             stereo_frame = self.stereo_capture.capture_frame()
+
+            h, w = stereo_frame.camera_frame_l.frame.shape[:2]
+            image_size =(w, h)
 
             res_l = self.pattern.detect_corners(img=stereo_frame.camera_frame_l.frame)
             res_r = self.pattern.detect_corners(img=stereo_frame.camera_frame_r.frame)
@@ -139,6 +142,6 @@ class StereoCalibrationSession:
             img_points_left = self.img_points_left,
             img_points_right = self.img_points_right,
             saved_images_count = self.stereo_capture.number_of_frames,
-            image_size = self.combined_resolution
+            image_size = image_size
         )
   

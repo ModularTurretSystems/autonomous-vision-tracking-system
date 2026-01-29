@@ -2,11 +2,11 @@ from dataclasses import dataclass
 from src.utils.image import combine_and_resize_frames, combine_frames, resize_frame
 
 from src.camera.types import CameraFrame
-from numpy import float32
+import numpy as np
 
 from cv2.typing import MatLike, Size
 from typing import List, Tuple
-from numpy.typing import NDArray
+
 
 
 @dataclass
@@ -44,7 +44,7 @@ class StereoFrame:
 class RawData:
     collected: int
     enough: bool
-    obj_points: List[NDArray[float32]]
+    obj_points: List[np.ndarray[np.float32]]
     img_points_left: List[MatLike]
     img_points_right: List[MatLike]
     saved_images_count: int

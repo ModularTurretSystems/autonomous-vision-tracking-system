@@ -25,14 +25,14 @@ class DirectoryCalibrationDataset:
 
     def extract_features(self) -> list[MatLike]:
         data_paths: list[Path] = []
-        for ext in self.extentions: data_paths.extend(self.data_dir.glob(pattern=f"*{ext}", case_sensitive=False))
+        for ext in self.extentions: data_paths.extend(self.data_dir.glob(pattern=f"*{ext}", case_sensitive=False)) #type: ignore
 
         data_paths = natsorted(data_paths, key=lambda p: p.name, alg=ns.PATH | ns.IGNORECASE)
         
         features: list[MatLike] = []
 
         for path in data_paths:
-            img: MatLike = imread(filename=str(path))
+            img: MatLike = imread(filename=str(path)) #type: ignore
             if img is None: continue # Implement logging here #type: ignore
 
             res = self.pattern.detect_corners(img=img)

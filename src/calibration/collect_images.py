@@ -3,8 +3,9 @@
 import cv2
 import os
 import numpy as np
-from pathlib import Path
 
+from pathlib import Path
+from src.utils.types import CFG
 from src.vision.stereo.system import StereoSystem
 from src.vision.stereo.capture import StereoCapture
 from src.calibration.patterns.chessboard import ChessboardPattern
@@ -24,7 +25,7 @@ WIN_SIZE = (11, 11)
 ZERO_ZONE = (-1, -1)
 CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-RESOLUTION = (640, 480)
+RESOLUTION = CFG.DISPLAY_SIZE
 MIN_GOOD_FRAMES = 15
 MAX_GOOD_FRAMES = 40
 
@@ -87,6 +88,7 @@ def collect_images() -> None:
             collected_good=result.collected,
             pattern_size=PATTERN_SIZE,
             square_size_mm=SQUARE_SIZE_MM,
+            image_size=result.image_size
         )
 
         print(f"\nТочки калибровки сохранены в:")
