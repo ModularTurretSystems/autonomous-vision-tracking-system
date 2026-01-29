@@ -67,6 +67,6 @@ while(1):
     if k == ord(EXIT_BUTTON):
         break
     elif k == ord(SAVE_BUTTON):
-        if capture.save_frame(frame=frame, base_name=BASE_NAME, ext=EXT): print(SAVE_MESSAGE)
+        if capture.save_frame(frame=camera_frame.frame, base_name=BASE_NAME, ext=EXT): print(SAVE_MESSAGE)
 
 print(f"Number of saved frames = {capture.get_saved_frame_count()}")
