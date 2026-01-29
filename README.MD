@@ -45,7 +45,11 @@ src/
 ├─ camera/
 │  ├─ camera.py           
 │  ├─ constants.py
-│  └─ types.py        
+│  └─ types.py   
+├─ tracking/
+│  ├─ tracking.py           
+│  ├─ types.py  
+│  └─ yolo_tracker.py  
 ├─ utils/
 │  ├─ camera_utils.py
 │  ├─ cv2_logging.py
@@ -74,8 +78,9 @@ src/
 │  ├─ findChessboardCorners.py  
 |  └─ testingOverload.py
 ├─ .gitignore
+├─ README.md
 ├─ requirements.txt
-└─ README.md
+└─ yolo26n.pt
 ```
 
 ## Running examples
