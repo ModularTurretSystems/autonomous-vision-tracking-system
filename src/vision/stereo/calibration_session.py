@@ -106,7 +106,7 @@ class StereoCalibrationSession:
                 horizontal=True
             )
 
-            status_text = f"Saved: {self.stereo_capture.get_number_of_frames} | Good: {collected} / min {self.min_good_frames}"
+            status_text = f"Saved: {self.stereo_capture.get_saved_frame_count()} | Good: {collected} / min {self.min_good_frames}"
             if res_l.found and res_r.found:
                 color = GOOD_COLOR
                 status_text += GOOD_STATUS_TEXT
@@ -141,7 +141,7 @@ class StereoCalibrationSession:
             obj_points = self.obj_points,
             img_points_left = self.img_points_left,
             img_points_right = self.img_points_right,
-            saved_images_count = self.stereo_capture.number_of_frames,
+            saved_images_count = self.stereo_capture.get_saved_frame_count(),
             image_size = image_size
         )
   
