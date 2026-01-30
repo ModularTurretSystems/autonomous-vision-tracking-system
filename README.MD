@@ -67,6 +67,7 @@ src/
 |  └─ stereo/
 │     ├─ calibration_session.py
 │     ├─ capture.py
+│     ├─ constants.py
 │     ├─ system.py
 |     └─ types.py
 ├─ examples/
@@ -75,7 +76,7 @@ src/
 │  |  ├─ captureAndDetection.py
 |  |  └─ monoCalibration.py
 │  ├─ stereo/
-|  |  └─ capture.py
+|  |  └─ captureAndDetection.py
 │  ├─ charucoCreate.py
 │  ├─ extractCornersFromDirectory.py
 │  ├─ charucoDetection.py
