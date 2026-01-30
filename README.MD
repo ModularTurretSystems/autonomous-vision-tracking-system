@@ -42,6 +42,9 @@ src/
 │  │  ├─ base.py
 │  │  ├─ npz.py
 │  |  └─ types.py
+│  ├─ reporting/
+│  │  ├─ constants.py
+│  |  └─ table.py
 │  ├─ calibrate.py
 │  ├─ collect_images.py   
 │  ├─ constants.py  
@@ -60,6 +63,7 @@ src/
 │  ├─ file_utils.py
 │  ├─ image.py
 │  ├─ path.py
+│  ├─ print_options.py
 │  └─ types.py
 ├─ vision/
 |  ├─ mono/
@@ -76,7 +80,8 @@ src/
 │  |  ├─ captureAndDetection.py
 |  |  └─ monoCalibration.py
 │  ├─ stereo/
-|  |  └─ captureAndDetection.py
+│  |  ├─ captureAndDetection.py
+|  |  └─ stereoCalibration.py
 │  ├─ charucoCreate.py
 │  ├─ extractCornersFromDirectory.py
 │  ├─ charucoDetection.py
