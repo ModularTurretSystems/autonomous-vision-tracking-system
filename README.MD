@@ -77,19 +77,18 @@ src/
 |     └─ types.py
 ├─ examples/
 │  ├─ mono/
-│  |  ├─ capture.py
-│  |  ├─ captureAndDetection.py
-|  |  └─ monoCalibration.py
+│  |  ├─ capture_demo.py
+│  |  ├─ capture_and_detection_demo.py
+|  |  └─ mono_calibration_demo.py
 │  ├─ stereo/
-│  |  ├─ captureAndDetection.py
-│  |  ├─ separatedMonoCalibrationWithNpzStorage.py
-|  |  └─ stereoCalibration.py
-│  ├─ charucoCreate.py
-│  ├─ extractCornersFromDirectory.py
-│  ├─ charucoDetection.py
-│  ├─ findChessboardCorners.py  
-│  ├─ npzCalibrationStorage.py  
-|  └─ testingOverload.py
+│  |  ├─ capture_and_detection_demo.py
+│  |  ├─ mono_calibration_with_npz_demo.py
+|  |  └─ stereo_calibration_demo.py
+│  ├─ calibration_storage_npz_demo.py
+│  ├─ charuco_create_demo.py
+│  ├─ charuco_detection_demo.py
+│  ├─ chessboard_corners_detection_demo.py  
+│  └─ extract_corners_from_directory_demo.py  
 ├─ .gitignore
 ├─ README.md
 ├─ requirements.txt
