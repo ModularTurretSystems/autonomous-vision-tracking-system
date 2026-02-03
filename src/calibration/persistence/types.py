@@ -14,3 +14,4 @@ class CalibrationNpzData(TypedDict):
     std_extrinsics: NDArray[np.float64]
     std_object_points: NDArray[np.float64]
     per_view_error: NDArray[np.float64]
+    image_points: NDArray[np.float64]

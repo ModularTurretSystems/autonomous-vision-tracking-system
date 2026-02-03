@@ -1,9 +1,11 @@
 import cv2
+import numpy as np
 from numpy import float32, zeros, mgrid
 
 from ..constants import ChessboardFlags
 
 from cv2.typing import MatLike, Size, TermCriteria
+from typing import Sequence
 from .types import ChessBoardDetectionResult
 
 
@@ -66,7 +68,7 @@ class ChessboardPattern():
         self.square_size = square_size
     
 
-    def generate_object_points(self) -> MatLike:
+    def generate_objp(self) -> MatLike:
         if self.square_size is None:
             raise ValueError(
                 "square_size is not set. "
@@ -77,4 +79,7 @@ class ChessboardPattern():
         objp[:,:2] = mgrid[0:self.pattern_size[0],0:self.pattern_size[1]].T.reshape(-1,2) * self.square_size
 
         return objp
-    
+
+
+    def generate_objps(self, length: int) -> Sequence[MatLike]:
+        return list(np.repeat(self.generate_objp()[np.newaxis, :, :], length, axis=0))

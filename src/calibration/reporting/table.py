@@ -37,4 +37,4 @@ def print_calibration_comparison(left: CalibrationResult, right: CalibrationResu
     print(f"{'View':<10} | {'Left':<15} | {'Right':<15}")
     print("-" * 45)
     for i, (l_err, r_err) in enumerate(zip(left.per_view_error, right.per_view_error)):
-        print(f"{i+1:<10} | {float(l_err):<15.6f} | {float(r_err):<15.6f}")
+        print(f"{i+1:<10} | {float(l_err[0]):<15.6f} | {float(r_err[0]):<15.6f}")

@@ -22,7 +22,8 @@ class NpzCalibrationStorage(CalibrationStorage[CalibrationResult]):
             std_intrinsics=result.std_intrinsics,
             std_extrinsics=result.std_extrinsics,
             std_object_points=result.std_object_points,
-            per_view_error=result.per_view_error
+            per_view_error=result.per_view_error,
+            image_points=result.image_points
         )
 
 
@@ -41,5 +42,6 @@ class NpzCalibrationStorage(CalibrationStorage[CalibrationResult]):
             std_intrinsics=data['std_intrinsics'],
             std_extrinsics=data['std_extrinsics'],
             std_object_points=data['std_object_points'],
-            per_view_error=data['per_view_error']
+            per_view_error=data['per_view_error'],
+            image_points=list(data['image_points'])
         )
