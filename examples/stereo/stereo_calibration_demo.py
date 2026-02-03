@@ -1,5 +1,5 @@
 """
-examples/stereo/stereoCalibration.py
+examples/stereo/stereo_calibration_demo.py
 
 Author: KrutayaBabka
 Date: 2026-01-30
@@ -28,7 +28,7 @@ Calibration Result Attributes:
     - per_view_error: Reprojection error per image
 
 Usage:
-    python -m examples.stereo.stereoCalibration
+    python -m examples.stereo.stereo_calibration_demo
 """
 
 

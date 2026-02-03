@@ -1,5 +1,5 @@
 """
-src/examples/stereo/captureAndDetection.py
+src/examples/stereo/capture_and_detection_demo.py
 
 Author: KrutayaBabka
 Date: 2026-01-23 (last modified: 2026-01-29)
@@ -18,7 +18,7 @@ Description:
         - Save stereo frame pairs only when the pattern is successfully detected in both images.
 
 Usage:
-    python -m examples.stereo.captureAndDetection
+    python -m examples.stereo.capture_and_detection_demo
 
 Controls:
     - 's' : Save current stereo frame pair (only if chessboard detected in both images)

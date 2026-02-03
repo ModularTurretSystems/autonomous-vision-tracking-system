@@ -1,5 +1,5 @@
 """
-examples/mono/monoCalibration.py
+examples/mono/mono_calibration_demo.py
 
 Author: KrutayaBabka
 Date: 2026-01-29
@@ -22,7 +22,7 @@ Attributes in the calibration result (calibration_result):
 - per_view_error: Reprojection error per image
 
 Usage:
-    python -m examples.mono.monoCalibration
+    python -m examples.mono.mono_calibration_demo
 """
 
 

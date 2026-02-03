@@ -1,5 +1,5 @@
 """
-examples/mono/captureAndDetection.py
+examples/mono/capture_and_detection_demo.py
 
 Author: KrutayaBabka
 Date: 2026-01-25 (last modified: 2026-01-30)
@@ -17,7 +17,7 @@ Description:
     Only frames where the chessboard is successfully detected are saved to disk.
 
 Usage:
-    python -m examples.mono.captureAndDetection
+    python -m examples.mono.capture_and_detection_demo
 
 Controls:
     - 's' : Save current frame (only if chessboard detected)

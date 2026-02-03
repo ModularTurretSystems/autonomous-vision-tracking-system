@@ -1,5 +1,5 @@
 """
-examples/npzCalibrationStorage.py
+examples/calibration_storage_npz_demo.py
 
 Author: KrutayaBabka
 Date: 2026-01-29
@@ -15,7 +15,7 @@ Description:
         6. Loading and displaying saved calibration results to verify correctness.
 
 Usage:
-    python -m examples.npzCalibrationStorage
+    python -m examples.calibration_storage_npz_demo
 """
 
 

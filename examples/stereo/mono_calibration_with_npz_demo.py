@@ -1,5 +1,5 @@
 """
-examples/stereo/separatedMonoCalibrationWithNpzStorage.py
+examples/stereo/mono_calibration_with_npz_demo.py
 
 Author: KrutayaBabka
 Date: 2026-01-29
@@ -16,7 +16,7 @@ Description:
         6. Loading and verifying the saved calibration results.
 
 Usage:
-    python -m examples.stereo.separatedMonoCalibrationWithNpzStorage
+    python -m examples.stereo.mono_calibration_with_npz_demo
 """
 
 
