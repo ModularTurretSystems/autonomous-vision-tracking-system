@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from pickle import FRAME
 from typing import Tuple
 
 @dataclass

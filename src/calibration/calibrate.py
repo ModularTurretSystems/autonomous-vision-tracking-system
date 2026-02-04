@@ -139,7 +139,7 @@ def stereo_calibrate(
 def compute_rectification_maps(
     calib: CalibratedData,
     image_size: Tuple[int, int]
-) -> Tuple[Tuple[MatLike, MatLike], Tuple[MatLike, MatLike], MatLike]:
+) -> Tuple[Tuple[MatLike, MatLike], Tuple[MatLike, MatLike], MatLike, MatLike]:
     R1, R2, P1, P2, Q, _, _ = cv2.stereoRectify(
         calib.matx_l, calib.dist_l,
         calib.matx_r, calib.dist_r,
@@ -163,7 +163,7 @@ def compute_rectification_maps(
         m1type=M1TYPE
     )
 
-    return (map_l_x, map_l_y), (map_r_x, map_r_y), Q
+    return (map_l_x, map_l_y), (map_r_x, map_r_y), Q, P1
 
 
 def save_calibration(
@@ -179,7 +179,7 @@ def save_calibration(
         
         calib = stereo_calibrate(data=points_data)
 
-        maps_l, maps_r, Q = compute_rectification_maps(calib=calib, image_size=IMAGE_SIZE)
+        maps_l, maps_r, Q, P1 = compute_rectification_maps(calib=calib, image_size=IMAGE_SIZE)
     
         print(f"RMS: {calib.rms:.4f}")
 
@@ -189,7 +189,8 @@ def save_calibration(
         map_l_y=maps_l[1],
         map_r_x=maps_r[0],
         map_r_y=maps_r[1],
-        Q=Q
+        Q=Q,
+        P1=P1
     )
 
     except Exception as e:

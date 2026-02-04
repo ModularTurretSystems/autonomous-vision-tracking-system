@@ -8,6 +8,7 @@ from .constants import(
 )
 
 from typing import(
+    Optional,
     Sequence
 )
 from .types import (
@@ -83,12 +84,15 @@ class Camera:
         for key, value in working_apis.items(): print(key, value)
 
 
-    def capture_frame(self) -> CameraFrame:
-        ret, frame = self.cap.read()
-        if not ret:
-            raise RuntimeError(f"Failed to capture frame from camera {self.camera_id}")
-        
-        return CameraFrame(success=ret, frame=frame)
+    def capture_frame(self) -> Optional[CameraFrame]:
+        if not self.cap.grab():
+            return None
+
+        ok, frame = self.cap.retrieve()
+        if not ok or frame is None:
+            return None
+
+        return CameraFrame(success=ok, frame=frame)
 
 
     def set(self, propId: int, value: float) -> bool:        

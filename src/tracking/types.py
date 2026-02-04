@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, Optional, Union
+from torch.types import Tensor
 
 import numpy as np
 
@@ -41,3 +42,18 @@ class Aim:
     @property
     def get_xy(self) -> Tuple[float, float]:
         return (self.x, self.y)
+
+@dataclass(frozen=True)
+class AimError:
+    ex_px: int
+    ey_px: int
+    ex_norm: float
+    ey_norm: float
+    ex_ang: Optional[float] = None
+    ey_ang: Optional[float] = None
+
+
+def to_numpy(x: Union[Tensor, np.ndarray]) -> np.ndarray:
+    if isinstance(x, Tensor):
+        return x.cpu().numpy()
+    return x
