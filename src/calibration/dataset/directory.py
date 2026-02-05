@@ -25,7 +25,12 @@ class DirectoryCalibrationDataset:
         self.images = None
         self.data_paths = None
 
+        
+    def extract_features(self) -> list[MatLike]:
+        data_paths: list[Path] = []
+        for ext in self.extentions: data_paths.extend(self.data_dir.glob(pattern=f"*{ext}", case_sensitive=False)) 
 
+          
     def get_data_paths(self) -> list[Path]:
         if self.data_paths is not None: return self.data_paths
 
@@ -43,9 +48,9 @@ class DirectoryCalibrationDataset:
     def extract_features(self) -> list[MatLike]:
         features: list[MatLike] = []
 
-        if self.images is None:
-            data_paths: list[Path] = self.get_data_paths()
-            images: list[MatLike] = []
+        for path in data_paths:
+            img: MatLike = imread(filename=str(path))
+            if img is None: continue # Implement logging here 
 
             for path in data_paths:
                 img: MatLike = imread(filename=str(path))

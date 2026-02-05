@@ -8,6 +8,7 @@ from .constants import(
 )
 
 from typing import(
+    Optional,
     Sequence
 )
 from .types import (
@@ -86,7 +87,7 @@ class Camera:
     def capture_frame(self) -> CameraFrame:
         ret, frame = self.cap.read()
         if not ret:
-            raise RuntimeError(f"Failed to capture frame from camera {self.camera_id}")
+            raise RuntimeError(f"Failed to capture frame from camera camera_id={self.camera_id}")
         
         return CameraFrame(success=ret, frame=frame)
 

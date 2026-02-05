@@ -63,4 +63,3 @@ class StereoSystem:
 
         except Exception as e:
             print(f"Exception in __del__: {e}")  
-             
