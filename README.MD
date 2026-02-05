@@ -32,12 +32,20 @@ src/
 │  |  └─ directory.py
 │  ├─ mono/
 │  │  ├─ calibrator.py
+│  │  ├─ calibrator.pyi
 │  │  ├─ constants.py
 │  |  └─ types.py
 │  ├─ patterns/
 │  │  ├─ charuco.py
 │  │  ├─ chessboard.py
 │  |  └─ types.py
+│  ├─ persistence/
+│  │  ├─ base.py
+│  │  ├─ npz.py
+│  |  └─ types.py
+│  ├─ reporting/
+│  │  ├─ constants.py
+│  |  └─ table.py
 │  ├─ calibrate.py
 │  ├─ collect_images.py   
 │  ├─ constants.py  
@@ -56,6 +64,7 @@ src/
 │  ├─ file_utils.py
 │  ├─ image.py
 │  ├─ path.py
+│  ├─ print_options.py
 │  └─ types.py
 ├─ vision/
 |  ├─ mono/
@@ -63,20 +72,23 @@ src/
 |  └─ stereo/
 │     ├─ calibration_session.py
 │     ├─ capture.py
+│     ├─ constants.py
 │     ├─ system.py
 |     └─ types.py
 ├─ examples/
 │  ├─ mono/
-│  |  ├─ capture.py
-│  |  ├─ captureAndDetection.py
-|  |  └─ monoCalibration.py
+│  |  ├─ capture_demo.py
+│  |  ├─ capture_and_detection_demo.py
+|  |  └─ mono_calibration_demo.py
 │  ├─ stereo/
-|  |  └─ capture.py
-│  ├─ charucoCreate.py
-│  ├─ extractCornersFromDirectory.py
-│  ├─ charucoDetection.py
-│  ├─ findChessboardCorners.py  
-|  └─ testingOverload.py
+│  |  ├─ capture_and_detection_demo.py
+│  |  ├─ mono_calibration_with_npz_demo.py
+|  |  └─ stereo_calibration_demo.py
+│  ├─ calibration_storage_npz_demo.py
+│  ├─ charuco_create_demo.py
+│  ├─ charuco_detection_demo.py
+│  ├─ chessboard_corners_detection_demo.py  
+│  └─ extract_corners_from_directory_demo.py  
 ├─ .gitignore
 ├─ README.md
 ├─ requirements.txt

@@ -2,6 +2,9 @@ import cv2
 from pathlib import Path
 
 from .system import StereoSystem
+from src.utils.path import ensure_directory
+
+from .constants import LEFT_CAMERA_DIR_NAME, RIGHT_CAMERA_DIR_NAME
 
 from cv2.typing import MatLike
 from .types import StereoFrame
@@ -15,20 +18,18 @@ class StereoCapture:
     ) -> None:
         self.stereo_system = stereo_system
 
-        self.save_dir: Path = Path(save_dir) if isinstance(save_dir, str) else save_dir
+        self.save_dir = ensure_directory(path=save_dir)
 
-        self.save_path_left: Path = self.save_dir / "left_cam"
-        self.save_path_right: Path = self.save_dir / "right_cam"
+        self.save_path_left: Path = ensure_directory(self.save_dir / LEFT_CAMERA_DIR_NAME)
+        self.save_path_right: Path = ensure_directory(self.save_dir / RIGHT_CAMERA_DIR_NAME)
 
-        self.save_path_left.mkdir(parents=True, exist_ok=True)
-        self.save_path_right.mkdir(parents=True, exist_ok=True)
-
-        self.number_of_frames: int = 0
+        self._saved_frame_count: int = 0
 
 
-    def get_number_of_frames(self) -> int:
+    def get_saved_frame_count(self) -> int:
         "Number of successfully saved pairs of frames"
-        return self.number_of_frames
+        return self._saved_frame_count
+    
     
     def capture_frame(self) -> StereoFrame:
         "Get a original stereo pair"
@@ -47,19 +48,26 @@ class StereoCapture:
 
     def save_frame(
             self, 
-            frame: StereoFrame
-    ) -> None:
+            frame: StereoFrame,
+            *,
+            base_name: str | None = None,
+            ext: str = "png"
+    ) -> bool:
         """
         Save stereo pair with current number.
         Increments the counter only after successeful saving.
         """        
-        left_name: str = f"{self.save_path_left}/{self.number_of_frames}.jpg"
-        right_name: str = f"{self.save_path_right}/{self.number_of_frames}.jpg"
+        base_name = '' if base_name is None else base_name + '_'
+        
+        left_filename: str = f"{self.save_path_left}/{base_name}{self.get_saved_frame_count() + 1}.{ext}"
+        right_filename: str = f"{self.save_path_right}/{base_name}{self.get_saved_frame_count() + 1}.{ext}"
 
-        cv2.imwrite(filename=left_name, img=frame.camera_frame_l.frame)
-        cv2.imwrite(filename=right_name, img=frame.camera_frame_r.frame)
+        cv2.imwrite(filename=left_filename, img=frame.camera_frame_l.frame)
+        cv2.imwrite(filename=right_filename, img=frame.camera_frame_r.frame)
             
-        self.number_of_frames += 1
+        self._saved_frame_count += 1
+
+        return True
 
 
     def __enter__(self):

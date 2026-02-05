@@ -15,3 +15,4 @@ class CalibrationResult:
     std_extrinsics: MatLike
     std_object_points: MatLike
     per_view_error: MatLike
+    image_points: Sequence[MatLike]

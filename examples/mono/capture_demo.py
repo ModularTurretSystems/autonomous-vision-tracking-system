@@ -1,5 +1,5 @@
 """
-examples/mono/capture.py
+examples/mono/capture_demo.py
 
 Author: KrutayaBabka
 Date: 2026-01-24
@@ -9,7 +9,7 @@ Description:
     by pressing a designated key. 
 
 Usage:
-    python -m examples.mono.capture
+    python -m examples.mono.capture_demo
 """
 
 

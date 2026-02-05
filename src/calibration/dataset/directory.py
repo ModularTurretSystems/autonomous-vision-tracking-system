@@ -22,27 +22,79 @@ class DirectoryCalibrationDataset:
 
         self.extentions = normalize_extension(extensions=extentions, allowed=ImageExtensions.ALL)
 
+        self.images = None
+        self.data_paths = None
 
+        
     def extract_features(self) -> list[MatLike]:
         data_paths: list[Path] = []
         for ext in self.extentions: data_paths.extend(self.data_dir.glob(pattern=f"*{ext}", case_sensitive=False)) 
 
-        data_paths = natsorted(data_paths, key=lambda p: p.name, alg=ns.PATH | ns.IGNORECASE)
+          
+    def get_data_paths(self) -> list[Path]:
+        if self.data_paths is not None: return self.data_paths
+
+        data_paths: list[Path] = []
+        for ext in self.extentions:
+            data_paths.extend(self.data_dir.glob(pattern=f"*{ext}", case_sensitive=False))
         
+        data_paths = natsorted(data_paths, key=lambda p: p.name, alg=ns.PATH | ns.IGNORECASE)
+
+        self.data_paths = data_paths
+
+        return data_paths
+    
+
+    def extract_features(self) -> list[MatLike]:
         features: list[MatLike] = []
 
         for path in data_paths:
             img: MatLike = imread(filename=str(path))
             if img is None: continue # Implement logging here 
 
-            res = self.pattern.detect_corners(img=img)
-            if not res.found: continue # Implement logging here
+            for path in data_paths:
+                img: MatLike = imread(filename=str(path))
+                if img is None: continue # Implement logging here #type: ignore
 
-            features.append(res.corners)
+                images.append(img)
+
+                res = self.pattern.detect_corners(img=img)
+                if not res.found: continue # Implement logging here
+
+                features.append(res.corners)
+
+            self.images = images
+        else:
+            for img in self.images:
+                res = self.pattern.detect_corners(img=img)
+                if not res.found: continue # Implement logging here
+
+                features.append(res.corners)
 
         return features
     
 
     def set_data_dir(self, data_dir: Path | str) -> None:
         self.data_dir = ensure_directory(path=data_dir)
+        self.data_paths = None
+        self.images = None
     
+
+    def load_images(self) -> list[MatLike]:
+        data_paths: list[Path] = self.get_data_paths()
+        
+        images: list[MatLike] = []
+        for path in data_paths:
+            img: MatLike = imread(filename=str(path))
+            if img is None: continue # Implement logging here #type: ignore
+            
+            images.append(img)
+
+        self.images = images
+
+        return images
+
+
+    def get_images(self) -> list[MatLike]:
+        return self.load_images() if self.images is None else self.images
+        
