@@ -46,6 +46,7 @@ K_TILT = 1.0
 
 SERVO_SEND_PERIOD = 0.05  # 50 ms
 
+CAMERA_REINIT_WAIT_SEC = 1.0
 
 def load_final_calibration_data(npz_path: str | Path) -> VisionData:
     data = np.load(npz_path, allow_pickle=True)
@@ -132,8 +133,17 @@ def tracking() -> None:
     begin: Optional[float] = None
 
     while True:
-        frames = cams.capture_frame()
-        if frames is None:
+        try:
+            frames = cams.capture_frame()
+        except RuntimeError as e:
+            print(f"[WARNING] Camera error: {e}")
+            print("[INFO] Reinitializing cameras...")
+            try:
+                cams = StereoSystem(left=CAM_L_ID, right=CAM_R_ID)
+            except Exception as init_error:
+                print(f"[ERROR] Failed to reinitialize cameras: {init_error}")
+                time.sleep(CAMERA_REINIT_WAIT_SEC)
+                continue
             continue
 
         frame_l = frames.camera_frame_l.frame
