@@ -1,4 +1,3 @@
-from typing import Optional
 from src.camera.camera import Camera
 from .types import StereoFrame
 
@@ -30,12 +29,9 @@ class StereoSystem:
             )
         
 
-    def capture_frame(self) -> Optional[StereoFrame]:
+    def capture_frame(self) -> StereoFrame:
         res_l = self.left_cam.capture_frame()
         res_r = self.right_cam.capture_frame()
-        
-        if res_l is None or res_r is None:
-            return None
         
         return StereoFrame(camera_frame_l=res_l, camera_frame_r=res_r)
     
@@ -67,6 +63,3 @@ class StereoSystem:
 
         except Exception as e:
             print(f"Exception in __del__: {e}")  
-
-
-
