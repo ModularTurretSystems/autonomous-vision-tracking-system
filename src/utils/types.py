@@ -1,11 +1,13 @@
 from dataclasses import dataclass
 from typing import Tuple
 
+
 @dataclass
 class AOVParameters:
     horizontal: float
     vertical: float
     diagonal: float
+
 
 @dataclass(frozen=True)
 class VisionConfig:
@@ -21,9 +23,10 @@ class VisionConfig:
     @property
     def FRAME_SIZE(self) -> Tuple[int, int]:
         return (self.FRAME_W, self.FRAME_H)
-    
+
     @property
     def DISPLAY_SIZE(self) -> Tuple[int, int]:
         return (self.DISPLAY_W, self.DISPLAY_H)
+
 
 CFG = VisionConfig(FRAME_H=1080, FRAME_W=1920)

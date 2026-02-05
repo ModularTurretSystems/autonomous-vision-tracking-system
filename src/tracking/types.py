@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Tuple, Optional, Union
 from torch.types import Tensor
+from cv2.typing import MatLike
 
 import numpy as np
 
@@ -52,7 +53,15 @@ class AimError:
     ex_ang: Optional[float] = None
     ey_ang: Optional[float] = None
 
-
+@dataclass
+class VisionData:
+    map_l_x: MatLike
+    map_l_y: MatLike
+    map_r_x: MatLike
+    map_r_y: MatLike
+    Q: MatLike
+    P1: MatLike
+    
 def to_numpy(x: Union[Tensor, np.ndarray]) -> np.ndarray:
     if isinstance(x, Tensor):
         return x.cpu().numpy()

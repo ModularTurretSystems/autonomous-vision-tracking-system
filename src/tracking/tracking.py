@@ -1,18 +1,19 @@
 from pathlib import Path
-import re
-from typing import Any, Dict, Optional, Literal
+from typing import Optional, Literal
 
 import cv2
 import numpy as np
-import serial
 import time
-import math
 
+from src.actuation.arduino import ArduinoSerial
+from src.actuation.turret import TurretController
+from src.tracking import draw_debug
 from src.tracking.errors import compute_aim_error
+from src.tracking.types import VisionData
 from src.tracking.yolo_tracker import YoloTargetDetector
 from src.utils.types import CFG
 from src.vision.stereo.system import StereoSystem
-
+from .draw_debug import draw_debug, draw_timer
 
 # =========================
 # CONFIG
@@ -46,115 +47,16 @@ K_TILT = 1.0
 SERVO_SEND_PERIOD = 0.05  # 50 ms
 
 
-def load_final_calibration_data(npz_path: str | Path) -> Dict[str, Any]:
+def load_final_calibration_data(npz_path: str | Path) -> VisionData:
     data = np.load(npz_path, allow_pickle=True)
-    return {
-        "map_l": (
-            data["map_l_x"].astype(np.float32),
-            data["map_l_y"].astype(np.float32),
-        ),
-        "map_r": (
-            data["map_r_x"].astype(np.float32),
-            data["map_r_y"].astype(np.float32),
-        ),
-        "Q": data["Q"].astype(np.float32),
-        "P1": data["P1"].astype(np.float32),
-    }
-
-
-def match_disparity_sad_1d(
-    row_l: np.ndarray,
-    row_r: np.ndarray,
-    xL: int,
-    max_disp: int = 64,
-    win: int = 7,
-) -> Optional[float]:
-    """
-    Возвращает disparity d (float) или None.
-    disparity = xL - xR, d > 0
-    """
-    half = win // 2
-    w = row_r.shape[0]
-
-    if xL - half < 0 or xL + half >= w:
-        return None
-
-    wl = row_l[xL - half : xL + half + 1].astype(np.int16)
-
-    best_d = None
-    best_cost = 1e18
-
-    for d in range(1, max_disp + 1):
-        xR = xL - d
-        if xR - half < 0 or xR + half >= w:
-            continue
-
-        wr = row_r[xR - half : xR + half + 1].astype(np.int16)
-        cost = int(np.sum(np.abs(wl - wr)))
-
-        if cost < best_cost:
-            best_cost = cost
-            best_d = d
-
-    if best_d is None:
-        return None
-
-    return float(best_d)
-
-
-def match_disparity_sgbm_strip(
-    stereo: cv2.StereoSGBM,
-    img_l_gray: np.ndarray,
-    img_r_gray: np.ndarray,
-    xL: int,
-    y: int,
-    strip_half_h: int = 6,
-    roi_margin_x: int = 120,
-) -> Optional[float]:
-    """
-    Считает disparity на узкой горизонтальной полосе вокруг y.
-    Возвращает disparity d (float) или None.
-    """
-    h, w = img_l_gray.shape[:2]
-    y0 = max(0, y - strip_half_h)
-    y1 = min(h, y + strip_half_h + 1)
-
-    x0 = max(0, xL - roi_margin_x)
-    x1 = min(w, xL + roi_margin_x)
-
-    roi_w = x1 - x0
-    num_disp = stereo.getNumDisparities()
-    block = stereo.getBlockSize()
-    if roi_w - num_disp <= (block // 2) + 1:
-        x0, x1 = 0, w
-        roi_w = w
-        if roi_w - num_disp <= (block // 2) + 1:
-            return None
-
-    roi_l = img_l_gray[y0:y1, x0:x1]
-    roi_r = img_r_gray[y0:y1, x0:x1]
-
-    disp = stereo.compute(roi_l, roi_r).astype(np.float32) / 16.0  # pixels
-
-    x_roi = xL - x0
-    y_roi = y - y0
-
-    dh, dw = disp.shape
-    if not (0 <= y_roi < dh and 0 <= x_roi < dw):
-        return None
-
-    win = 5
-    half = win // 2
-    if x_roi - half < 0 or x_roi + half >= dw or y_roi - half < 0 or y_roi + half >= dh:
-        return None
-
-    patch = disp[y_roi - half : y_roi + half + 1, x_roi - half : x_roi + half + 1]
-    valid = patch[patch > 0.5]  # 0/отрицательное у SGBM — невалид
-    if valid.size == 0:
-        return None
-
-    d = float(np.median(valid))
-    return d
+    return VisionData(
+        map_l_x=data["map_l_x"].astype(np.float32),
+        map_l_y=data["map_l_y"].astype(np.float32),
+        map_r_x=data["map_r_x"].astype(np.float32),
+        map_r_y=data["map_r_y"].astype(np.float32),
+        Q=data["Q"].astype(np.float32),
+        P1=data["P1"].astype(np.float32)
+    )
 
 
 def update_depth_filtered(
@@ -192,40 +94,31 @@ def tracking() -> None:
         ema_alpha=EMA_ALPHA,
     )
 
+    arduino = ArduinoSerial(
+        port=SERIAL_PORT, 
+        baudrate=SERIAL_BAUD
+    )
+
+    turret = TurretController(
+        arduino=arduino,
+        pan_limits=(PAN_MIN, PAN_MAX),
+        tilt_limits=(TILT_MIN, TILT_MAX),
+        send_period=SERVO_SEND_PERIOD,
+    )
+
+    
+    
     cams = StereoSystem(left=CAM_R_ID, right=CAM_L_ID)
 
     calib = load_final_calibration_data(CALIBRATION_OUTPUT_PATH)
-    map_lx, map_ly = calib["map_l"]
-    map_rx, map_ry = calib["map_r"]
-    Q = calib["Q"]
-    P1 = calib["P1"]
 
-    f = float(Q[2, 3])
-    B = float(-1.0 / Q[3, 2])  # в мм
+    f = float(calib.Q[2, 3])
+    B = float(-1.0 / calib.Q[3, 2])  # в мм
     last_send_t = 0.0
     last_sent_pan = None
-    ser = serial.Serial(
-        port=SERIAL_PORT,
-        baudrate=SERIAL_BAUD,
-        timeout=0.01,
-    )
-
-    time.sleep(2)
 
     pan_deg = 90
     tilt_deg = 90
-
-    sgbm = cv2.StereoSGBM.create(
-        minDisparity=0,
-        numDisparities=64,  # кратно 16
-        blockSize=5,
-        P1=8 * 1 * 5 * 5,
-        P2=32 * 1 * 5 * 5,
-        uniquenessRatio=10,
-        speckleWindowSize=80,
-        speckleRange=16,
-        disp12MaxDiff=1,
-    )
 
     print(f"Трекинг запущен. Нажмите '{EXIT_BUTTON}' для выхода.")
 
@@ -242,11 +135,12 @@ def tracking() -> None:
         frames = cams.capture_frame()
         if frames is None:
             continue
+
         frame_l = frames.camera_frame_l.frame
         frame_r = frames.camera_frame_r.frame
 
-        rect_l = cv2.remap(frame_l, map_lx, map_ly, cv2.INTER_LINEAR)
-        rect_r = cv2.remap(frame_r, map_rx, map_ry, cv2.INTER_LINEAR)
+        rect_l = cv2.remap(frame_l, calib.map_l_x, calib.map_l_y, cv2.INTER_LINEAR)
+        rect_r = cv2.remap(frame_r, calib.map_r_x, calib.map_r_y, cv2.INTER_LINEAR)
 
         rect_l_gray = cv2.cvtColor(rect_l, cv2.COLOR_BGR2GRAY)
         rect_r_gray = cv2.cvtColor(rect_r, cv2.COLOR_BGR2GRAY)
@@ -261,7 +155,7 @@ def tracking() -> None:
 
             # cv2.imshow("left", rect_l)
             # cv2.imshow("right", rect_r)
-            cv2.imshow("хуйня", cv2.hconcat([rect_l, rect_r]))
+            cv2.imshow("left+right", cv2.hconcat([rect_l, rect_r]))
 
             k = cv2.waitKey(1) & 0xFF
             if k == ord(EXIT_BUTTON):
@@ -274,106 +168,86 @@ def tracking() -> None:
 
         xR = last_xR if last_xR is not None else xL
 
-        d = None
-        if frame_id % DEPTH_EVERY_N == 0 and 0 <= y < rect_l_gray.shape[0]:
-            if DEPTH_METHOD == "sad":
-                row_l = rect_l_gray[y]
-                row_r = rect_r_gray[y]
-                d = match_disparity_sad_1d(row_l, row_r, xL, max_disp=64, win=7)
-            else:
-                d = match_disparity_sgbm_strip(sgbm, rect_l_gray, rect_r_gray, xL, y)
+        # d = None
+        # if frame_id % DEPTH_EVERY_N == 0 and 0 <= y < rect_l_gray.shape[0]:
+        #     if DEPTH_METHOD == "sad":
+        #         row_l = rect_l_gray[y]
+        #         row_r = rect_r_gray[y]
+        #         d = match_disparity_sad_1d(row_l, row_r, xL, max_disp=64, win=7)
+        #     else:
+        #         d = match_disparity_sgbm_strip(sgbm, rect_l_gray, rect_r_gray, xL, y)
 
-        if d is not None and d > 0:
-            xR_new = int(round(xL - d))
-            xR = xR_new
-            last_xR = xR_new
+        # if d is not None and d > 0:
+        #     xR_new = int(round(xL - d))
+        #     xR = xR_new
+        #     last_xR = xR_new
 
         dz = det.deadzone_rect(frame_bgr=rect_l, deadzone_frac=(0.15, 0.15))
         inside = det.point_in_dz(pt_xy=pt, dz_xyxy=dz)
         vis = det.draw(frame_bgr=rect_l, det=bbox, pt=pt, dz=dz)
 
-        fx = P1[0, 0]
-        fy = P1[1, 1]
-        aim_err = compute_aim_error(pt=pt, dz_xyxy=dz, fx=fx, fy=fy)
-        # and aim_err.ey_ang is not None
-        if aim_err.ex_ang is not None:
-            err_pan_deg = math.degrees(aim_err.ex_ang)
+        # fx = P1[0, 0]
+        # fy = P1[1, 1]
+        # aim_err = compute_aim_error(pt=pt, dz_xyxy=dz, fx=fx, fy=fy)
+        # # and aim_err.ey_ang is not None
+        # if aim_err.ex_ang is not None:
+        #     err_pan_deg = math.degrees(aim_err.ex_ang)
 
-            if not inside:
-                pan_deg += K_PAN * err_pan_deg
-                pan_deg = max(PAN_MIN, min(PAN_MAX, pan_deg))
+        #     if not inside:
+        #         pan_deg += K_PAN * err_pan_deg
+        #         pan_deg = max(PAN_MIN, min(PAN_MAX, pan_deg))
 
-                now = time.time()
-                new_pan = int(pan_deg)
+        #         now = time.time()
+        #         new_pan = int(pan_deg)
 
-                if now - last_send_t > SERVO_SEND_PERIOD and new_pan != last_sent_pan:
-                    ser.write(f"PAN={new_pan}\n".encode())
-                    last_send_t = now
-                    last_sent_pan = new_pan
-                
-                
+        #         if now - last_send_t > SERVO_SEND_PERIOD and new_pan != last_sent_pan:
+        #             ser.write(f"PAN={new_pan}\n".encode())
+        #             last_send_t = now
+        #             last_sent_pan = new_pan
 
         if inside:
-            ser.write(b"Light ON\n")
-            n = time.time()
+            turret.set_light(enabled=True)
+            now = time.time()
             if begin is not None:
-                cv2.putText(
-                    vis,
-                    f"Sec={abs(n-begin):.2f}",
-                    (10, 120),
-                    cv2.FONT_HERSHEY_COMPLEX,
-                    0.8,
-                    (0, 255, 0),
-                    2,
-                )
+                draw_timer(vis=vis, now=now, begin=begin)
             if begin is None:
                 begin = time.time()
-            elif abs(n - begin) > 1.5:
-                ser.write(b"Shoot\n")
+            elif abs(now - begin) > 1.5:
+                turret.shoot()
                 begin = None
         else:
-            ser.write(b"Light OFF\n")
+            turret.set_light(enabled=False)
             begin = None
 
-        cv2.putText(
-            vis,
-            f"PAN={int(pan_deg)} TILT={int(tilt_deg)}",
-            (10, 90),
-            cv2.FONT_HERSHEY_COMPLEX,
-            0.8,
-            (0, 255, 0),
-            2,
-        )
+        
 
         color = (0, 255, 0) if inside else (0, 0, 255)
         if 0 <= y < rect_r.shape[0] and 0 <= xR < rect_r.shape[1]:
             cv2.circle(rect_r, (xR, y), 5, color, -1)
 
         z_raw = None
-        if d is not None and d > 0:
-            z_candidate = (f * B) / float(d)
-            if Z_MIN <= z_candidate <= Z_MAX:
-                z_raw = z_candidate
+        # if d is not None and d > 0:
+        #     z_candidate = (f * B) / float(d)
+        #     if Z_MIN <= z_candidate <= Z_MAX:
+        #         z_raw = z_candidate
 
         z_prev = update_depth_filtered(z_prev, z_raw, MAX_Z_STEP, EMA_ALPHA)
 
-        cv2.putText(
-            vis,
-            f"inside_deadzone: {inside}",
-            (10, 30),
-            cv2.FONT_HERSHEY_COMPLEX,
-            0.8,
-            (255, 255, 0),
-            2,
-        )
+        
 
         # if z_prev is not None:
         #     cv2.putText(rect_r, f"Depth: {int(z_prev)} mm", (10, 30),
         #                 cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 0), 2)
 
-        # cv2.imshow("left", vis)
-        # cv2.imshow("right", rect_r)
-        cv2.imshow("хуйня", cv2.hconcat([vis, rect_r]))
+        draw_debug(
+            vis=vis,
+            inside=inside,
+            pan=pan_deg,
+            tilt=tilt_deg
+        )
+        
+        cv2.imshow("left+right", cv2.hconcat([vis, rect_r]))
+        
         k = cv2.waitKey(1) & 0xFF
         if k == ord(EXIT_BUTTON):
             break
