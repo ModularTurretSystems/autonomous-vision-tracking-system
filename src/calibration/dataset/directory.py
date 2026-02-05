@@ -42,32 +42,32 @@ class DirectoryCalibrationDataset:
 
 
     def extract_features(self) -> list[MatLike]:
-            features: list[MatLike] = []
+        features: list[MatLike] = []
 
-            if self.images is None:
-                data_paths: list[Path] = self.get_data_paths()
-                images: list[MatLike] = []
+        if self.images is None:
+            data_paths: list[Path] = self.get_data_paths()
+            images: list[MatLike] = []
 
-                for path in data_paths:
-                    img: Optional[MatLike] = imread(filename=str(path))
-                    if img is None: continue # Implement logging here
+            for path in data_paths:
+                img: Optional[MatLike] = imread(filename=str(path))
+                if img is None: continue # Implement logging here
 
-                    images.append(img)
+                images.append(img)
 
-                    res = self.pattern.detect_corners(img=img)
-                    if not res.found: continue # Implement logging here
+                res = self.pattern.detect_corners(img=img)
+                if not res.found: continue # Implement logging here
 
-                    features.append(res.corners)
+                features.append(res.corners)
 
-                self.images = images
-            else:
-                for img in self.images:
-                    res = self.pattern.detect_corners(img=img)
-                    if not res.found: continue # Implement logging here
+            self.images = images
+        else:
+            for img in self.images:
+                res = self.pattern.detect_corners(img=img)
+                if not res.found: continue # Implement logging here
 
-                    features.append(res.corners)
+                features.append(res.corners)
 
-            return features
+        return features
     
 
     def set_data_dir(self, data_dir: Path | str) -> None:
