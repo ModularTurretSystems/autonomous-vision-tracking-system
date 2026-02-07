@@ -2,10 +2,10 @@ from src.utils.print_options import np_printoptions
 
 from .constants import NAMES_OF_DIST_COEFFS
 
-from src.calibration.mono.types import CalibrationResult
+from src.calibration.mono.types import MonoCalibrationResult
 
 
-def print_distortion_comparison(left: CalibrationResult, right: CalibrationResult) -> None:
+def print_distortion_comparison(left: MonoCalibrationResult, right: MonoCalibrationResult) -> None:
     left_dc = left.dist_coeffs.flatten()
     right_dc = right.dist_coeffs.flatten()
 
@@ -17,7 +17,7 @@ def print_distortion_comparison(left: CalibrationResult, right: CalibrationResul
 
 
 @np_printoptions()
-def print_calibration_comparison(left: CalibrationResult, right: CalibrationResult) -> None:
+def print_calibration_comparison(left: MonoCalibrationResult, right: MonoCalibrationResult) -> None:
     print("=" * 100)
     print(f"{'PARAMETER':<25} | {'LEFT CAMERA':<35} | {'RIGHT CAMERA':<35}")
     print("=" * 100)

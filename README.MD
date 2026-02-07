@@ -40,13 +40,13 @@ src/
 │  │  ├─ chessboard.py
 │  |  └─ types.py
 │  ├─ persistence/
-│  │  ├─ base.py
-│  │  ├─ npz.py
-│  |  └─ types.py
+│  |  └─ npz.py
 │  ├─ reporting/
 │  │  ├─ constants.py
 │  |  └─ table.py
-│  ├─ calibrate.py
+│  ├─ stereo/
+│  │  ├─ calibrator.py
+│  |  └─ types.py
 │  ├─ collect_images.py   
 │  ├─ constants.py  
 │  └─ types.py  
@@ -83,7 +83,8 @@ src/
 │  ├─ stereo/
 │  |  ├─ capture_and_detection_demo.py
 │  |  ├─ mono_calibration_with_npz_demo.py
-|  |  └─ stereo_calibration_demo.py
+│  |  ├─ stereo_calibration_demo.py
+|  |  └─ stereo_calibration_with_npz_demo.py
 │  ├─ calibration_storage_npz_demo.py
 │  ├─ charuco_create_demo.py
 │  ├─ charuco_detection_demo.py

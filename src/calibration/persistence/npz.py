@@ -1,47 +1,34 @@
 import numpy as np
 from pathlib import Path
 
-from .types import CalibrationNpzData
-from .base import CalibrationStorage
-from src.calibration.mono.types import CalibrationResult
+from dataclasses import fields, is_dataclass
 from src.utils.path import ensure_file_path
 
+from typing import TypeVar, Generic, Type
 
-class NpzCalibrationStorage(CalibrationStorage[CalibrationResult]):
-    def save(self, result: CalibrationResult, filename: Path | str) -> None:
+
+T = TypeVar("T")
+
+
+class NpzCalibrationStorage(Generic[T]):
+    def __init__(self, cls: Type[T]) -> None:
+        if not is_dataclass(cls):
+            raise ValueError("cls must be a dataclass")
+        
+        self._cls = cls
+
+
+    def save(self, result: T, filename: Path | str) -> None:
         file_path = ensure_file_path(file_path=filename)
 
-        np.savez(
-            file=file_path,
-            rms=result.rms,
-            camera_matrix=result.camera_matrix,
-            dist_coeffs=result.dist_coeffs,
-            rvecs=result.rvecs,
-            tvecs=result.tvecs,
-            object_points=result.object_points,
-            std_intrinsics=result.std_intrinsics,
-            std_extrinsics=result.std_extrinsics,
-            std_object_points=result.std_object_points,
-            per_view_error=result.per_view_error,
-            image_points=result.image_points
-        )
+        data = {f.name: getattr(result, f.name) for f in fields(self._cls)}
+        np.savez(file=file_path, **data)
 
 
-    def load(self, filename: Path | str) -> CalibrationResult:
+    def load(self, filename: Path | str) -> T:
         file_path = ensure_file_path(file_path=filename)
 
-        data: CalibrationNpzData = np.load(file_path, allow_pickle=True)
+        npz_data = np.load(file=file_path, allow_pickle=True)
+        kwargs = {f.name: npz_data[f.name] for f in fields(self._cls)}
 
-        return CalibrationResult(
-            rms=float(data['rms']),
-            camera_matrix=data['camera_matrix'],
-            dist_coeffs=data['dist_coeffs'],
-            rvecs=list(data['rvecs']),
-            tvecs=list(data['tvecs']),
-            object_points=data['object_points'],
-            std_intrinsics=data['std_intrinsics'],
-            std_extrinsics=data['std_extrinsics'],
-            std_object_points=data['std_object_points'],
-            per_view_error=data['per_view_error'],
-            image_points=list(data['image_points'])
-        )
+        return self._cls(**kwargs)

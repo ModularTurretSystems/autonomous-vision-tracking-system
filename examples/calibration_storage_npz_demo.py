@@ -3,6 +3,7 @@ examples/calibration_storage_npz_demo.py
 
 Author: KrutayaBabka
 Date: 2026-01-29
+Last Modified: 2026-02-05
 
 Description: 
     This script demonstrates a complete workflow for monocular camera calibration using 
@@ -21,6 +22,7 @@ Usage:
 
 import cv2
 
+from src.calibration.mono.types import MonoCalibrationResult
 from src.calibration.patterns.chessboard import ChessboardPattern
 from src.calibration.dataset.directory import DirectoryCalibrationDataset
 from src.calibration.mono.calibrator import MonoCalibrator
@@ -92,14 +94,18 @@ print("Distortion Coefficients:\n", calibration_result.dist_coeffs, '\n')
 print("Per-view Reprojection Error:\n", calibration_result.per_view_error, '\n')
 
 # -------------------------------
-# Save Calibration Results
+# Save Calibration Results to NPZ
 # -------------------------------
-NpzCalibrationStorage().save(result=calibration_result, filename=SAVE_PATH)
+# Create storage instance for MonoCalibrationResult
+mono_storage = NpzCalibrationStorage(MonoCalibrationResult)
+
+# Save left and right calibration results
+mono_storage.save(result=calibration_result, filename=SAVE_PATH)
 
 # -------------------------------
 # Load Calibration Results
 # -------------------------------
-loaded_calibration_result = NpzCalibrationStorage().load(filename=SAVE_PATH)
+loaded_calibration_result = mono_storage.load(filename=SAVE_PATH)
 
 # -------------------------------
 # Display Loaded Calibration Results

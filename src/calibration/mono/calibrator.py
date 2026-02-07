@@ -1,6 +1,6 @@
 
 from cv2 import initCameraMatrix2D, calibrateCameraROExtended
-from src.calibration.mono.types import CalibrationResult
+from src.calibration.mono.types import MonoCalibrationResult
 from src.calibration.patterns.chessboard import ChessboardPattern
 
 from .constants import FixedPointMode
@@ -113,7 +113,7 @@ class MonoCalibrator():
         i_fixed_point: int | FixedPointMode | None = None,
         flags: int | None = None,
         criteria: TermCriteria | None = None
-    ) -> CalibrationResult:
+    ) -> MonoCalibrationResult:
         
         image_points, i_fixed_point, cameraMatrix, distCoeffs, flags, criteria = self._normalize_calibration_args(image_points=image_points, i_fixed_point=i_fixed_point, flags=flags, criteria=criteria)
         if self.objps is None: self.objps = self.generate_objps(image_points=image_points)
@@ -129,7 +129,7 @@ class MonoCalibrator():
             criteria=criteria
         )
 
-        return CalibrationResult(
+        return MonoCalibrationResult(
             rms=rms, 
             camera_matrix=cameraMatrix, 
             dist_coeffs=distCoeffs, 
