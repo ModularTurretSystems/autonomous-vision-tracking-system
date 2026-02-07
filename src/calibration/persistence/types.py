@@ -3,7 +3,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 
-class CalibrationNpzData(TypedDict):
+class MonoCalibrationNpzData(TypedDict):
     rms: NDArray[np.float64]
     camera_matrix: NDArray[np.float64]
     dist_coeffs: NDArray[np.float64]

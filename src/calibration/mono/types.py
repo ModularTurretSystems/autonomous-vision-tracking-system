@@ -4,7 +4,7 @@ from typing import Sequence
 
 
 @dataclass
-class CalibrationResult:
+class MonoCalibrationResult:
     rms: float
     camera_matrix: MatLike
     dist_coeffs: MatLike

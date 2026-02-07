@@ -1,5 +1,5 @@
 
-from src.calibration.mono.types import CalibrationResult
+from src.calibration.mono.types import MonoCalibrationResult
 from src.calibration.patterns.chessboard import ChessboardPattern
 
 from .constants import FixedPointMode
@@ -64,7 +64,7 @@ class MonoCalibrator():
 
 
     @overload
-    def calibrate(self) -> CalibrationResult: ...
+    def calibrate(self) -> MonoCalibrationResult: ...
 
 
     @overload
@@ -75,5 +75,5 @@ class MonoCalibrator():
         i_fixed_point: int | FixedPointMode | None = None, 
         flags: int | None = None, 
         criteria: TermCriteria | None = None
-    ) -> CalibrationResult: ...
+    ) -> MonoCalibrationResult: ...
     
