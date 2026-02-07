@@ -1,203 +1,179 @@
+"""
+src/calibration/stereo/calibrator.py
+
+Author
+------
+Stanislav : original implementation (2026-01-31)
+Danil4615 : refactoring and documentation (2026-02-07)
+
+Description
+-----------
+This module provides a class-based interface for stereo camera calibration
+based on previously computed mono calibration results for the left and right
+cameras.
+
+The main entry point is the `StereoCalibrator` class, which wraps OpenCV's
+`stereoCalibrateExtended` function and returns a structured
+`StereoCalibrationResult` object.
+"""
+
+
 import cv2
 import numpy as np
 
-from src.utils.types import CFG
-from pathlib import Path
-from typing import Dict, Any, Tuple
-from cv2.typing import MatLike
-from .types import CalibratedData
+from src.calibration.patterns.chessboard import ChessboardPattern
 
-# ========== CONSTANTS for out() ==========
-NPZ_FILE_PATH = "data/calibration_results/calibration_points.npz"
-CALIBRATION_OUTPUT_PATH = "data/calibration_results/final_stereo_calibration.npz"
-IMAGE_SIZE = CFG.FRAME_SIZE
-
-# ========== CONSTANTS for load_points_data() ==========
-LPD_PATTERN_SIZE_DV = (9, 6)
-LPD_SQUARE_SIZE_MM = 30.0
-LPD_COLLECTED_GOOD_DV = 0
-LPD_IMAGE_SIZE_DV = CFG.FRAME_SIZE
-
-# ========== CONSTANTS for stereo_calibrate() ==========
-CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 1e-5)
-FLAGS = cv2.CALIB_RATIONAL_MODEL | cv2.CALIB_FIX_K3 
-IFIXEDPOINT = (LPD_PATTERN_SIZE_DV[0]//2) * LPD_PATTERN_SIZE_DV[0] + (LPD_PATTERN_SIZE_DV[1]//2)
-
-# ========== CONSTANTS for compute_rectification_maps()
-ALPHA_VALUE = 0
-M1TYPE = cv2.CV_32FC1
-
-# ========== CONSTANTS for show_disparity_map() ==========
-WINDOW_SCALE = 0.7
-
-MIN_DISPARITY = 0
-NUM_DISPARITIES = 64
-BLOCK_SIZE = 5
-P1 = 8 * 3 * 5**2
-P2 = 32 * 3 * 5**2
-DISP12_MAX_DIFF = 1
-UNIQUENESS_RATIO = 10
-SPECKLE_WINDOW_SIZE = 100
-SPECKLE_RANGE = 32
-
-UNKNOWN_DIVISON_COEFF = 16.0
-
-ALPHA = 0
-BETA = 255
-
-POINTS_3D_EXAMPLE_AREA_H = 200
-POINTS_3D_EXAMPLE_AREA_W = 300
-
-# ==================================================
+from typing import Optional, Tuple
+from cv2.typing import MatLike, Size, TermCriteria
+from src.calibration.mono.types import MonoCalibrationResult
+from .types import StereoCalibrationResult
 
 
-def load_points_data(npz_path: str | Path) -> Dict[str, Any]:
-    npz_path = Path(npz_path)
-    if not npz_path.exists():
-        raise FileNotFoundError(f"File wasn't found: {npz_path}")
+class StereoCalibrator():
+    """
+    Perform stereo camera calibration using mono calibration results.
 
-    print(f"Download calibration points: {npz_path.resolve()}")
-    data: Any = np.load(npz_path, allow_pickle=True)
+    This class takes calibration results for the left and right cameras,
+    along with a known calibration pattern, and estimates the extrinsic
+    relationship between the two cameras.
 
-    return {
-        "obj_points": data["obj_points"],
-        "img_points_left": data["img_points_left"],
-        "img_points_right": data["img_points_right"],
-        "pattern_size": tuple(data.get("pattern_size", LPD_PATTERN_SIZE_DV)),
-        "square_size_mm": float(data.get("square_size_mm", LPD_SQUARE_SIZE_MM)),
-        "collected_good": int(data.get("collected_good", LPD_COLLECTED_GOOD_DV)),
-        "image_size": tuple(data.get("image_size", LPD_IMAGE_SIZE_DV)),
-    }
+    The calibration process computes:
+        - Refined intrinsic parameters
+        - Rotation and translation between cameras
+        - Essential and fundamental matrices
+        - Per-view reprojection errors
 
+    Notes
+    -----
+    This class assumes that both mono calibration results were obtained
+    using the same calibration pattern and the same set of views.
+    """
 
-def stereo_calibrate(
-        data: Dict[str, Any]
-    ) -> CalibratedData:
-    image_size = data["image_size"]
-    objpoints = data["obj_points"]
-    imgpoints_l = data["img_points_left"]
-    imgpoints_r = data["img_points_right"]
+    def __init__(
+        self,
+        left_calibration_data: MonoCalibrationResult,
+        right_calibration_data: MonoCalibrationResult,
+        pattern: ChessboardPattern,
+        image_size: Size,
+        *,
+        flags: Optional[int] = None,
+        criteria: Optional[TermCriteria] = None
+    ) -> None:
+        """
+        Initialize the stereo calibrator.
 
-    criteria = CRITERIA
+        Parameters
+        ----------
+        left_calibration_data : MonoCalibrationResult
+            Mono calibration result for the left camera.
+        right_calibration_data : MonoCalibrationResult
+            Mono calibration result for the right camera.
+        pattern : ChessboardPattern
+            Calibration pattern used to generate object points.
+        image_size : Size
+            Size of the calibration images as (width, height).
+        flags : int, optional
+            OpenCV stereo calibration flags.
+        criteria : TermCriteria, optional
+            Termination criteria for the stereo calibration optimizer.
+        """
+        self.left_calibration_data = left_calibration_data
+        self.right_calibration_data = right_calibration_data
+        self.pattern = pattern
+        self.image_size = image_size
+        self.flags = flags
+        self.criteria = criteria
+        self.objps = pattern.generate_objps(len(left_calibration_data.image_points))
 
-    flags = FLAGS
-
-    # Create empty matrix
-    empty_camera = np.eye(3, dtype=np.float64)
-    empty_dist = np.zeros(5, dtype=np.float64)
-
-    _, mtx_l, dist_l, _, _, _ = cv2.calibrateCameraRO(
-        objectPoints=objpoints,
-        imagePoints=imgpoints_l,
-        imageSize= IMAGE_SIZE,
-        iFixedPoint= IFIXEDPOINT,
-        cameraMatrix=empty_camera,
-        distCoeffs= empty_dist,
-        flags=FLAGS,
-        criteria=CRITERIA
-    )
-
-    _, mtx_r, dist_r, _, _, _ = cv2.calibrateCameraRO(
-        objectPoints=objpoints,
-        imagePoints=imgpoints_r,
-        imageSize= IMAGE_SIZE,
-        iFixedPoint= IFIXEDPOINT,
-        cameraMatrix=empty_camera,
-        distCoeffs= empty_dist,
-        flags=FLAGS,
-        criteria=CRITERIA
-    )
-
-    ret, mtx_l, dist_l, mtx_r, dist_r, R, T, E, F = cv2.stereoCalibrate(
-        objectPoints=objpoints,
-        imagePoints1=imgpoints_l,
-        imagePoints2=imgpoints_r,
-        cameraMatrix1=mtx_l,           
-        distCoeffs1=dist_l,               
-        cameraMatrix2=mtx_r,
-        distCoeffs2=dist_r,
-        imageSize=image_size,
-        flags=flags,
-        criteria=criteria
-    )
-
-    # AOV_params = estimate_AOV(matx=mtx_l, img_size=IMAGE_SIZE)
-
-    return CalibratedData(
-        rms=ret,
-        matx_l=mtx_l,   
-        dist_l=dist_l,
-        matx_r=mtx_r,
-        dist_r=dist_r,
-        R=R,
-        T=T,
-        E=E,
-        F=F
-    )
-
-
-def compute_rectification_maps(
-    calib: CalibratedData,
-    image_size: Tuple[int, int]
-) -> Tuple[Tuple[MatLike, MatLike], Tuple[MatLike, MatLike], MatLike, MatLike]:
-    R1, R2, P1, P2, Q, _, _ = cv2.stereoRectify(
-        calib.matx_l, calib.dist_l,
-        calib.matx_r, calib.dist_r,
-        image_size, calib.R, calib.T, alpha=ALPHA_VALUE
-    )
-
-    map_l_x, map_l_y = cv2.initUndistortRectifyMap(
-        cameraMatrix=calib.matx_l,
-        distCoeffs=calib.dist_l,
-        R=R1,
-        newCameraMatrix=P1,
-        size=image_size,
-        m1type=M1TYPE
-    )
-    map_r_x, map_r_y = cv2.initUndistortRectifyMap(
-        cameraMatrix=calib.matx_r,
-        distCoeffs=calib.dist_r,
-        R=R2,
-        newCameraMatrix=P2,
-        size=image_size,
-        m1type=M1TYPE
-    )
-
-    return (map_l_x, map_l_y), (map_r_x, map_r_y), Q, P1
-
-
-def save_calibration(
-) -> None:
     
-    output_path = Path(CALIBRATION_OUTPUT_PATH)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    def set_flags(self, flags: int) -> None:
+        """
+        Set OpenCV stereo calibration flags.
 
-    npz_file = NPZ_FILE_PATH
-
-    try:
-        points_data = load_points_data(npz_path=npz_file)
-        
-        calib = stereo_calibrate(data=points_data)
-
-        maps_l, maps_r, Q, P1 = compute_rectification_maps(calib=calib, image_size=IMAGE_SIZE)
-    
-        print(f"RMS: {calib.rms:.4f}")
-
-        np.savez(
-        output_path,
-        map_l_x=maps_l[0],  
-        map_l_y=maps_l[1],
-        map_r_x=maps_r[0],
-        map_r_y=maps_r[1],
-        Q=Q,
-        P1=P1
-    )
-
-    except Exception as e:
-        print(f"❌ Ошибка при сохранении калибровки: {e}")
-        import traceback
-        traceback.print_exc()
+        Parameters
+        ----------
+        flags : int
+            OpenCV stereo calibration flags (e.g. cv2.CALIB_FIX_INTRINSIC).
+        """
+        self.flags = flags
 
 
-if __name__ == "__main__":
-    save_calibration()
+    def set_criteria(self, cirteria: TermCriteria) -> None:
+        """
+        Set termination criteria for stereo calibration.
+
+        Parameters
+        ----------
+        criteria : TermCriteria
+            OpenCV termination criteria tuple.
+        """
+        self.criteria = cirteria
+
+
+    def _normalize_calibration_args(
+        self
+    ) -> Tuple[int, TermCriteria]:
+        """
+        Normalize optional calibration arguments.
+
+        Returns
+        -------
+        tuple of (int, TermCriteria)
+            Tuple containing flags and termination criteria suitable
+            for passing into OpenCV's stereo calibration function.
+        """
+        return self.flags, self.criteria #type: ignore
+
+
+    def calibrate(self) -> StereoCalibrationResult:
+        """
+        Run stereo camera calibration.
+
+        This method wraps OpenCV's `stereoCalibrateExtended` and returns
+        the result in a structured `StereoCalibrationResult` object.
+
+        Returns
+        -------
+        StereoCalibrationResult
+            Stereo calibration result containing:
+                - Refined intrinsic parameters
+                - Rotation matrix and translation vector
+                - Essential and fundamental matrices
+                - Per-view reprojection errors
+                - Image points used for calibration
+        """
+        rotation_matrix: MatLike = np.array([])
+        translation_vector: MatLike = np.array([])
+        flags, criteria = self._normalize_calibration_args()
+
+        rms, left_camera_matrix, left_dist_coeffs, right_camera_matrix, right_dist_coeffs, rotation_matrix, translation_vector, essential_matrix, fundamental_matrix, rvecs, tvecs, per_view_errors = cv2.stereoCalibrateExtended(
+            objectPoints=self.objps,
+            imagePoints1=self.left_calibration_data.image_points,
+            imagePoints2=self.right_calibration_data.image_points,
+            cameraMatrix1=self.left_calibration_data.camera_matrix,
+            distCoeffs1=self.right_calibration_data.dist_coeffs,
+            cameraMatrix2=self.right_calibration_data.camera_matrix,
+            distCoeffs2=self.right_calibration_data.dist_coeffs,
+            imageSize=self.image_size,
+            R=rotation_matrix,
+            T=translation_vector,
+            flags=flags,
+            criteria=criteria
+        )
+
+        return StereoCalibrationResult(
+            rms=rms,
+            left_camera_matrix=left_camera_matrix,
+            left_dist_coeffs=left_dist_coeffs,
+            right_camera_matrix=right_camera_matrix,
+            right_dist_coeffs=right_dist_coeffs,
+            rotation_matrix=rotation_matrix,
+            translation_vector=translation_vector,
+            essential_matrix=essential_matrix,
+            fundamental_matrix=fundamental_matrix,
+            rvecs=rvecs,
+            tvecs=tvecs,
+            per_view_errors=per_view_errors,
+            left_image_points=self.left_calibration_data.image_points,
+            right_image_points=self.right_calibration_data.image_points
+        )
