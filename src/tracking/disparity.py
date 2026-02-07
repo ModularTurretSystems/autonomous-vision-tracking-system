@@ -1,46 +1,42 @@
-from typing import Optional
-
 import numpy as np
 import cv2
 
-def match_disparity_sad_1d(
-    row_l: np.ndarray,
-    row_r: np.ndarray,
-    xL: int,
-    max_disp: int = 64,
-    win: int = 7,
-) -> Optional[float]:
-    """
-    Возвращает disparity d (float) или None.
-    disparity = xL - xR, d > 0
-    """
-    half = win // 2
-    w = row_r.shape[0]
+from numpy.lib.stride_tricks import sliding_window_view
 
-    if xL - half < 0 or xL + half >= w:
+from typing import Optional, Tuple
+from numpy.typing import NDArray
+
+
+def sad_match_1d(
+    row_left: NDArray[np.floating],
+    row_right: NDArray[np.floating],
+    x_left: int,
+    windows_size: int,    
+    max_dispatity: int     
+) -> Optional[Tuple[float, int]]:
+    half = windows_size // 2
+    windows_size = 2 * half + 1
+
+    length = row_left.shape[0]
+    if x_left + half >= length or x_left - half < 0:
         return None
+    
+    w_left = row_left[x_left - half : x_left + half + 1]
 
-    wl = row_l[xL - half : xL + half + 1].astype(np.int16)
+    r_start = max(0, x_left - max_dispatity - half)
+    r_end = min(row_right.shape[0], x_left + half)
 
-    best_d = None
-    best_cost = 1e18
+    region = row_right[r_start : r_end + 1]
 
-    for d in range(1, max_disp + 1):
-        xR = xL - d
-        if xR - half < 0 or xR + half >= w:
-            continue
+    candidate_windows = sliding_window_view(x=region, window_shape=windows_size)
+    costs = np.sum(np.abs(candidate_windows - w_left), axis=1)
 
-        wr = row_r[xR - half : xR + half + 1].astype(np.int16)
-        cost = int(np.sum(np.abs(wl - wr)))
+    min_idx = int(np.argmin(costs))
+    x_right = r_start + min_idx + half
 
-        if cost < best_cost:
-            best_cost = cost
-            best_d = d
-
-    if best_d is None:
-        return None
-
-    return float(best_d)
+    disparity = float(x_left - x_right)
+    
+    return disparity, x_right
 
 
 def match_disparity_sgbm_strip(
