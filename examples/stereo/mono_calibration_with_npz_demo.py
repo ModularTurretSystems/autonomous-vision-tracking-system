@@ -2,7 +2,8 @@
 examples/stereo/mono_calibration_with_npz_demo.py
 
 Author: KrutayaBabka
-Date: 2026-01-29
+Created: 2026-01-29
+Last Modified: 2026-02-05
 
 Description:
     Demonstrates a complete workflow for monocular camera calibration using a chessboard pattern
@@ -13,7 +14,6 @@ Description:
         4. Running camera calibration to compute intrinsic parameters, distortion coefficients,
            and per-view reprojection errors.
         5. Saving calibration results to .npz files.
-        6. Loading and verifying the saved calibration results.
 
 Usage:
     python -m examples.stereo.mono_calibration_with_npz_demo
@@ -22,6 +22,7 @@ Usage:
 
 import cv2
 
+from src.calibration.mono.types import MonoCalibrationResult
 from src.calibration.patterns.chessboard import ChessboardPattern
 from src.calibration.dataset.directory import DirectoryCalibrationDataset
 from src.calibration.mono.calibrator import MonoCalibrator
@@ -105,10 +106,15 @@ left_calibration_result = calibrator.calibrate()
 right_calibration_result = calibrator.calibrate(image_points=right_image_points)
 
 # -------------------------------
-# Save Calibration Results
+# Save Calibration Results to NPZ
 # -------------------------------
+# Build full paths for saving
 left_path = f"{MAIN_DIR}/{LEFT_FILENAME}"
 right_path = f"{MAIN_DIR}/{RIGHT_FILENAME}"
 
-NpzCalibrationStorage().save(result=left_calibration_result, filename=left_path)
-NpzCalibrationStorage().save(result=right_calibration_result, filename=right_path)
+# Create storage instance for MonoCalibrationResult
+mono_storage = NpzCalibrationStorage(MonoCalibrationResult)
+
+# Save left and right calibration results
+mono_storage.save(result=left_calibration_result, filename=left_path)
+mono_storage.save(result=right_calibration_result, filename=right_path)
