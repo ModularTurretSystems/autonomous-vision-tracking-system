@@ -55,9 +55,16 @@ src/
 │  ├─ constants.py
 │  └─ types.py   
 ├─ tracking/
-│  ├─ tracking.py           
-│  ├─ types.py  
-│  └─ yolo_tracker.py  
+|  ├─ backends/
+│  |  ├─ base.py           
+│  |  ├─ config.py           
+│  |  └─ yolo.py  
+|  ├─ factories/
+│  |  └─ backend_config.py
+│  ├─ config.py           
+│  ├─ constants.py           
+│  ├─ tracker.py           
+│  └─ types.py  
 ├─ utils/
 │  ├─ camera_utils.py
 │  ├─ cv2_logging.py
