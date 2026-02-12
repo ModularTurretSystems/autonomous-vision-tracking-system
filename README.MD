@@ -93,6 +93,7 @@ src/
 │  |  ├─ stereo_calibration_demo.py
 |  |  └─ stereo_calibration_with_npz_demo.py
 │  ├─ calibration_storage_npz_demo.py
+│  ├─ camera_characteristics_demo.py
 │  ├─ capture_with_error_handling.py
 │  ├─ charuco_create_demo.py
 │  ├─ charuco_detection_demo.py
