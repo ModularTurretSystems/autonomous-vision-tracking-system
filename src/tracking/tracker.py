@@ -11,6 +11,10 @@ This module provides a high-level Tracker interface that wraps a tracking backen
 It allows users to initialize a tracker with a configuration and perform tracking
 on video frames. Currently supports YOLO-based backends, with an architecture
 ready for extension to other model types.
+
+The results are returned in a structured format using `TrackedObjects`,
+containing lightweight `Object` instances with bounding boxes (`Box`), class
+information, confidence, and tracking IDs.
 """
 
 
@@ -21,9 +25,9 @@ from .config import TrackerConfig
 from .backends.base import TrackingBackend
 from .constants import TrackerModel
 
-from typing import List
+from typing import Optional
 from cv2.typing import MatLike
-from .types import TrackedObject
+from .types import TrackedObjects
 
 
 class Tracker():
@@ -51,11 +55,13 @@ class Tracker():
 
     Examples
     --------
-    >>> from tracking.config import TrackerConfig
-    >>> from tracking.constants import TrackerModel
+>>> from tracking.config import TrackerConfig
+    >>> from tracking.constants import TrackerModel, Level
+    >>> from tracking.tracker import Tracker
     >>> config = TrackerConfig(model=TrackerModel.YOLO26N, level=Level.NORMAL)
     >>> tracker = Tracker(config)
     >>> tracked_objects = tracker.track(frame)
+    >>> print(tracked_objects.objects[0].box.pt1)  # Top-left corner of first detected object
     """
 
     def __init__(
@@ -64,7 +70,7 @@ class Tracker():
         ) -> None:
         self.config = config
         self.model = self._create_backend()
-        self.tracked_objects: List[TrackedObject] = []
+        self.tracked_objects: Optional[TrackedObjects] = None
 
     
     def _create_backend(self) -> TrackingBackend:
@@ -96,7 +102,7 @@ class Tracker():
         raise ValueError(f"Unknown tracker model: {model}")
 
     
-    def track(self, frame: MatLike) -> List[TrackedObject]:
+    def track(self, frame: MatLike) -> TrackedObjects:
         """
         Track objects in a single video frame.
 
@@ -107,8 +113,14 @@ class Tracker():
 
         Returns
         -------
-        List[TrackedObject]
-            List of tracked objects detected in the frame.
+        TrackedObjects
+            Structured container of detected/tracked objects for the frame.
+            Each `Object` contains:
+            - `cls_id` : int, numeric class ID
+            - `cls_name` : str, human-readable class name
+            - `conf` : float, detection/tracking confidence
+            - `id` : int | None, tracking ID if available
+            - `box` : Box, bounding box coordinates (pt1, pt2)
 
         Notes
         -----
