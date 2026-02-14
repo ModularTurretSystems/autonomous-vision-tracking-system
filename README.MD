@@ -101,6 +101,7 @@ src/
 │  ├─ aiming_with_calibrated_camera_demo.py
 │  ├─ calibration_storage_npz_demo.py
 │  ├─ camera_characteristics_demo.py
+│  ├─ capture_and_tracking_demo.py
 │  ├─ capture_with_error_handling.py
 │  ├─ charuco_create_demo.py
 │  ├─ charuco_detection_demo.py
