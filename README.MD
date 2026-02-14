@@ -54,6 +54,11 @@ src/
 │  ├─ camera.py           
 │  ├─ constants.py
 │  └─ types.py   
+├─ targeting/
+│  ├─ aiming.py           
+│  ├─ constants.py           
+│  ├─ selector.py           
+│  └─ types.py  
 ├─ tracking/
 |  ├─ backends/
 │  |  ├─ base.py           
@@ -72,7 +77,8 @@ src/
 │  ├─ image.py
 │  ├─ path.py
 │  ├─ print_options.py
-│  └─ types.py
+│  ├─ types.py
+│  └─ typing_utils.py
 ├─ vision/
 |  ├─ mono/
 │  |  └─ capture.py
@@ -92,6 +98,7 @@ src/
 │  |  ├─ mono_calibration_with_npz_demo.py
 │  |  ├─ stereo_calibration_demo.py
 |  |  └─ stereo_calibration_with_npz_demo.py
+│  ├─ aiming_with_calibrated_camera_demo.py
 │  ├─ calibration_storage_npz_demo.py
 │  ├─ camera_characteristics_demo.py
 │  ├─ capture_with_error_handling.py
