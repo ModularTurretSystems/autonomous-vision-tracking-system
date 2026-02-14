@@ -54,10 +54,22 @@ src/
 │  ├─ camera.py           
 │  ├─ constants.py
 │  └─ types.py   
+├─ targeting/
+│  ├─ aiming.py           
+│  ├─ constants.py           
+│  ├─ selector.py           
+│  └─ types.py  
 ├─ tracking/
-│  ├─ tracking.py           
-│  ├─ types.py  
-│  └─ yolo_tracker.py  
+|  ├─ backends/
+│  |  ├─ base.py           
+│  |  ├─ config.py           
+│  |  └─ yolo.py  
+|  ├─ factories/
+│  |  └─ backend_config.py
+│  ├─ config.py           
+│  ├─ constants.py           
+│  ├─ tracker.py           
+│  └─ types.py  
 ├─ utils/
 │  ├─ camera_utils.py
 │  ├─ cv2_logging.py
@@ -65,7 +77,8 @@ src/
 │  ├─ image.py
 │  ├─ path.py
 │  ├─ print_options.py
-│  └─ types.py
+│  ├─ types.py
+│  └─ typing_utils.py
 ├─ vision/
 |  ├─ mono/
 │  |  └─ capture.py
@@ -85,7 +98,11 @@ src/
 │  |  ├─ mono_calibration_with_npz_demo.py
 │  |  ├─ stereo_calibration_demo.py
 |  |  └─ stereo_calibration_with_npz_demo.py
+│  ├─ aiming_with_calibrated_camera_demo.py
 │  ├─ calibration_storage_npz_demo.py
+│  ├─ camera_characteristics_demo.py
+│  ├─ capture_and_tracking_demo.py
+│  ├─ capture_with_error_handling.py
 │  ├─ charuco_create_demo.py
 │  ├─ charuco_detection_demo.py
 │  ├─ chessboard_corners_detection_demo.py  
