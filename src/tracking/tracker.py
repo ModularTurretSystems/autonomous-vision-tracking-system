@@ -7,14 +7,13 @@ KrutayaBabka : initial implementation (2026-02-12)
 
 Description
 -----------
-This module provides a high-level Tracker interface that wraps a tracking backend.
-It allows users to initialize a tracker with a configuration and perform tracking
-on video frames. Currently supports YOLO-based backends, with an architecture
-ready for extension to other model types.
+High-level Tracker interface for multi-object tracking. 
 
-The results are returned in a structured format using `TrackedObjects`,
-containing lightweight `Object` instances with bounding boxes (`Box`), class
-information, confidence, and tracking IDs.
+This module wraps backend tracker implementations (currently YOLO-based)
+and exposes a unified `Tracker` class for frame-by-frame tracking. Results
+are returned as structured `TrackedObjects`, containing lightweight `Object`
+instances with bounding boxes (`Box`), class information, confidence scores,
+and tracking IDs.
 """
 
 
@@ -25,37 +24,34 @@ from .config import TrackerConfig
 from .backends.base import TrackingBackend
 from .constants import TrackerModel
 
-from typing import Optional
 from cv2.typing import MatLike
 from .types import TrackedObjects
 
 
 class Tracker():
     """
-    High-level interface for multi-object tracking.
+    High-level multi-object tracker interface.
 
-    This class manages the creation of the appropriate backend tracker based on
-    the provided configuration and exposes a `track` method for frame-by-frame
-    tracking.
+    This class handles backend selection and initialization based on
+    `TrackerConfig`. Users can perform tracking on video frames using
+    the `track` method, receiving results in a consistent internal format.
 
     Parameters
     ----------
     config : TrackerConfig
-        Configuration object specifying model, task type, thresholds, and other
-        tracker parameters.
+        Tracker configuration specifying model type, task, thresholds,
+        inference options, and tracking parameters.
 
     Attributes
     ----------
     config : TrackerConfig
-        Stores the configuration object.
+        The configuration used to initialize the tracker.
     model : TrackingBackend
-        The backend tracker instance created according to the configuration.
-    tracked_objects : List[TrackedObject]
-        List of tracked objects from the last processed frame.
+        The instantiated backend tracker according to the configuration.
 
     Examples
     --------
->>> from tracking.config import TrackerConfig
+    >>> from tracking.config import TrackerConfig
     >>> from tracking.constants import TrackerModel, Level
     >>> from tracking.tracker import Tracker
     >>> config = TrackerConfig(model=TrackerModel.YOLO26N, level=Level.NORMAL)
@@ -70,27 +66,26 @@ class Tracker():
         ) -> None:
         self.config = config
         self.model = self._create_backend()
-        self.tracked_objects: Optional[TrackedObjects] = None
 
     
     def _create_backend(self) -> TrackingBackend:
         """
-        Instantiate the appropriate tracking backend based on the configuration.
+        Instantiate the backend tracker according to the configuration.
 
         Returns
         -------
         TrackingBackend
-            Initialized backend tracker instance.
+            The initialized backend tracker instance.
 
         Raises
         ------
         ValueError
-            If the specified model in the configuration is not supported.
+            If the specified model in the configuration is unsupported.
 
         Notes
         -----
-        Currently, only YOLO-based backends are supported. This method is private
-        and called automatically during Tracker initialization.
+        Currently only YOLO-based backends are supported. This method is
+        private and called automatically during Tracker initialization.
         """
 
         model = self.config.model
@@ -104,30 +99,29 @@ class Tracker():
     
     def track(self, frame: MatLike) -> TrackedObjects:
         """
-        Track objects in a single video frame.
+        Perform detection and tracking on a single video frame.
 
         Parameters
         ----------
         frame : MatLike
-            Input image/frame to perform tracking on.
+            Input image or video frame to process.
 
         Returns
         -------
         TrackedObjects
             Structured container of detected/tracked objects for the frame.
-            Each `Object` contains:
+            Each `Object` includes:
             - `cls_id` : int, numeric class ID
             - `cls_name` : str, human-readable class name
             - `conf` : float, detection/tracking confidence
-            - `id` : int | None, tracking ID if available
-            - `box` : Box, bounding box coordinates (pt1, pt2)
+            - `id` : int or None, tracking identifier if available
+            - `box` : Box, bounding box in pixel coordinates (pt1, pt2)
 
         Notes
         -----
-        This method delegates tracking to the backend tracker created at
-        initialization. The results are cached in `self.tracked_objects`.
+        - Delegates tracking to the backend tracker created during initialization.
+        - No internal caching of results is performed; the method returns
+          results directly in `TrackedObjects`.
         """
 
-        self.tracked_objects = self.model.track(frame=frame)
-
-        return self.tracked_objects
+        return self.model.track(frame=frame)
