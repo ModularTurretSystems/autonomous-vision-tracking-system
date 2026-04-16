@@ -192,7 +192,7 @@ class AimingCalculator:
         """
         
         new_angles = self._pinhole_model(target=target)
-        pan = current.pan + new_angles.pan
+        pan = current.pan - new_angles.pan
         tilt = current.tilt - new_angles.tilt
 
         pan = max(self.pan_range[0], min(self.pan_range[1], pan))

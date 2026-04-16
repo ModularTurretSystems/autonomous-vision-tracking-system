@@ -8,7 +8,6 @@ from .constants import(
 )
 
 from typing import(
-    Optional,
     Sequence
 )
 from .types import (
