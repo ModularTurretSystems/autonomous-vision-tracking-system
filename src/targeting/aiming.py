@@ -113,11 +113,11 @@ class AimingCalculator:
             self.fy = camera_matrix[1][1]
             self.org = (camera_matrix[0][2], camera_matrix[1][2])
 
-        elif fov is not None or aov is not None or org is not None:
+        elif fov is not None and aov is not None and org is not None:
             self.org: Point2f = org # type: ignore
             # Compute focal lengths in pixels using pinhole camera model
-            self.fx = image_size[0] / (-2 * math.tan(fov/2)) #type: ignore
-            self.fy = image_size[1] / (-2 * math.tan(aov/2)) #type: ignore
+            self.fx = image_size[0] / (2 * math.tan(fov/2)) #type: ignore   ##### ПОЧЕМУ -2???
+            self.fy = image_size[1] / (2 * math.tan(aov/2)) #type: ignore
 
         else:
             raise ValueError(
@@ -192,13 +192,9 @@ class AimingCalculator:
         """
         
         new_angles = self._pinhole_model(target=target)
-        pan = current.pan - new_angles.pan
-        tilt = current.tilt - new_angles.tilt
-
-        pan = max(self.pan_range[0], min(self.pan_range[1], pan))
-        tilt = max(self.tilt_range[0], min(self.tilt_range[1], tilt))
 
         return Angles(
-            pan=pan,
-            tilt=tilt
+            pan=(-1)*new_angles.pan,
+            tilt=(-1)*new_angles.tilt
         )
+
