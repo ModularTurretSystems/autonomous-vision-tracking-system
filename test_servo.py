@@ -24,36 +24,64 @@ ARDUINO_BAUD = 9600
 
 def find_arduino_port():
     ports = serial.tools.list_ports.comports()
+
+    print("Available ports:")
+
     for port in ports:
-        if "Arduino" in port.description or "CH340" in port.description:
-            return port.device
+        print(
+            f"Device={port.device} "
+            f"Description={port.description}"
+        )
+
+        device = port.device
+
+        # Linux / Raspberry
+        if (
+            "ttyUSB" in device or
+            "ttyACM" in device
+        ):
+            return device
+
+        # Windows fallback
+        if (
+            "Arduino" in port.description or
+            "CH340" in port.description
+        ):
+            return device
+
     return None
 
 
 def connect_arduino():
+
     port = ARDUINO_PORT
+
     if port is None:
         port = find_arduino_port()
 
     if port:
-        try:
-            arduino = serial.Serial(port=port, baudrate=ARDUINO_BAUD, timeout=1)
-            time.sleep(2)
-            print("Arduino connected")
 
-            # while(True):
-            #     line = arduino.readline().decode().strip()
-            #     if line == "ARDUINO_READY":
-            #         print("Arduino ready")
-            #         break
-            
+        try:
+            arduino = serial.Serial(
+                port=port,
+                baudrate=ARDUINO_BAUD,
+                timeout=1
+            )
+
+            time.sleep(2)
+
+            print(f"Arduino connected: {port}")
+
             return arduino
+
         except Exception as e:
-            print(f"Error {e}")
+            print(f"Connection error: {e}")
             return None
+
     else:
-        print("Arduino doesn't found")
+        print("Arduino not found")
         return None
+
 
 def send_angles_relative(
     arduino: Serial,
@@ -154,9 +182,12 @@ WITH_REID = True
 
 IMAGE_SIZE = (1280, 720)
 CAM_ID = 0
+FOCUS_PARAM = 0
 PARAMS = (
     cv2.CAP_PROP_FRAME_WIDTH, IMAGE_SIZE[0],
-    cv2.CAP_PROP_FRAME_HEIGHT, IMAGE_SIZE[1]
+    cv2.CAP_PROP_FRAME_HEIGHT, IMAGE_SIZE[1],
+    cv2.CAP_PROP_AUTOFOCUS, 0,
+    cv2.CAP_PROP_FOCUS, FOCUS_PARAM
 )
 
 FOV = 65
@@ -263,7 +294,7 @@ while True:
             # Фильтр дрожания
             if (
                 abs(pan_angle) >= DEAD_ANGLE
-                or abs(tilt_angle) >= DEAD_ANGLE
+                or abs(tilt_angle) >= 5
             ):
                 send_angles_relative(
                     arduino=arduino,
