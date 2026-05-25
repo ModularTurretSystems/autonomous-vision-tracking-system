@@ -43,7 +43,7 @@ HALF = True
 # Camera Settings
 # -------------------------------
 CAM_ID = 0
-API_PREFERENCE = cv2.CAP_MSMF
+API_PREFERENCE = cv2.CAP_V4L2
 CAM_PARAMS = [
     cv2.CAP_PROP_FRAME_WIDTH, 1280,
     cv2.CAP_PROP_FRAME_HEIGHT, 720

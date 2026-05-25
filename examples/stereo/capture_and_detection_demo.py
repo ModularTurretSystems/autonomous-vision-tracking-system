@@ -85,8 +85,8 @@ SAVE_MESSAGE = "Saved"
 # -------------------------------
 # Initialize Cameras and Stereo System
 # -------------------------------
-cam_l = Camera(camera_id=CAM_L_ID, apiPreference=cv2.CAP_MSMF, params=PARAMS)
-cam_r = Camera(camera_id=CAM_R_ID, apiPreference=cv2.CAP_MSMF, params=PARAMS)
+cam_l = Camera(camera_id=CAM_L_ID, apiPreference=cv2.CAP_V4L2, params=PARAMS)
+cam_r = Camera(camera_id=CAM_R_ID, apiPreference=cv2.CAP_V4L2, params=PARAMS)
 stereo_system = StereoSystem(left=cam_l, right=cam_r)
 stereo_capture = StereoCapture(stereo_system=stereo_system, save_dir=SAVE_DIR)
 

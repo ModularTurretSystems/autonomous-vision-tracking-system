@@ -111,7 +111,7 @@ aiming_calculator = AimingCalculator(
 # -------------------------------
 cap = cv2.VideoCapture(
     filename=VIDEO_PATH,
-    apiPreference=cv2.CAP_MSMF
+    apiPreference=cv2.CAP_V4L2
 )
 
 current_angles = INITIAL_ANGLES

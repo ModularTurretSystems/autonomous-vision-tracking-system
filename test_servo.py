@@ -194,7 +194,7 @@ FOV = 65
 AOV = 37
 # FOV = 45
 # AOV = 37
-config = TrackerConfig(model=MODEL, classes=CLASSES, device="cuda:0")
+config = TrackerConfig(model=MODEL, classes=CLASSES)
 tracker = Tracker(config=config)
 
 center_img = (IMAGE_SIZE[0] / 2, IMAGE_SIZE[1] / 2)
@@ -212,8 +212,8 @@ calclulator = AimingCalculator(image_size=IMAGE_SIZE, camera_matrix=data.camera_
 # calclulator = AimingCalculator(image_size=IMAGE_SIZE, fov=FOV, aov=AOV, org=center_img, pan_range=RANGE, tilt_range=RANGE)
 # calclulator = AimingCalculator(image_size=IMAGE_SIZE, fov=55, aov=37, org=center_img)
 
-cam = Camera(camera_id=CAM_ID, apiPreference=cv2.CAP_MSMF, params=PARAMS)
-# cam_tilt = Camera(camera_id=CAM_ID_TILT, apiPreference=cv2.CAP_MSMF, params=PARAMS)
+cam = Camera(camera_id=CAM_ID, apiPreference=cv2.CAP_V4L2, params=PARAMS)
+# cam_tilt = Camera(camera_id=CAM_ID_TILT, apiPreference=cv2.CAP_V4L2, params=PARAMS)
 
 # inital_angles = Angles(pan=90, tilt=90)
 

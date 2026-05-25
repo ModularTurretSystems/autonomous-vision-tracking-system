@@ -86,7 +86,7 @@ SAVE_MESSAGE = "Saved"
 # -------------------------------
 # Initialize Camera and Pattern
 # -------------------------------
-cam = Camera(camera_id=CAM_ID, apiPreference=cv2.CAP_MSMF, params=PARAMS)
+cam = Camera(camera_id=CAM_ID, apiPreference=cv2.CAP_V4L2, params=PARAMS)
 pattern = ChessboardPattern(pattern_size=PATTERN_SIZE, flags=FLAGS, refine=True, win_size=WIN_SIZE, zero_zone=ZERO_ZONE, criteria=CRITERIA)
 
 

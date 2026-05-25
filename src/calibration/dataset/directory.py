@@ -32,7 +32,7 @@ class DirectoryCalibrationDataset:
 
         data_paths: list[Path] = []
         for ext in self.extentions:
-            data_paths.extend(self.data_dir.glob(pattern=f"*{ext}", case_sensitive=False))
+            data_paths.extend(self.data_dir.glob(pattern=f"*{ext}"))
         
         data_paths = natsorted(data_paths, key=lambda p: p.name, alg=ns.PATH | ns.IGNORECASE)
 

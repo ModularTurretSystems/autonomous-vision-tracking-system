@@ -13,7 +13,7 @@ PARAMS = (
 
 
 def main():
-    camera = Camera(camera_id=CAM_ID, apiPreference=cv2.CAP_MSMF, params=PARAMS)
+    camera = Camera(camera_id=CAM_ID, apiPreference=cv2.CAP_V4L2, params=PARAMS)
     run(camera)
 
 if __name__ == "__main__":
