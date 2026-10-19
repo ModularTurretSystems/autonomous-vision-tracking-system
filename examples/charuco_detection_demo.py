@@ -81,7 +81,7 @@ pattern = CharucoPattern(
 # ===============================
 # Initialize Camera
 # ===============================
-cam = Camera(camera_id=CAMERA_ID, apiPreference=cv2.CAP_MSMF, params=CAMERA_PARAMS)
+cam = Camera(camera_id=CAMERA_ID, apiPreference=cv2.CAP_V4L2, params=CAMERA_PARAMS)
 
 
 # ===============================

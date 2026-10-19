@@ -67,7 +67,7 @@ WINDOW_NAME = "Chessboard Corners"
 # ===============================
 # Initialize Camera and Pattern
 # ===============================
-cam = Camera(camera_id=CAMERA_ID, apiPreference=cv2.CAP_MSMF, params=CAMERA_PARAMS)
+cam = Camera(camera_id=CAMERA_ID, apiPreference=cv2.CAP_V4L2, params=CAMERA_PARAMS)
 
 pattern = ChessboardPattern(
     pattern_size=PATTERN_SIZE,
